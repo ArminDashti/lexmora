@@ -1,0 +1,11 @@
+# Optional overlay: host port publish (local / direct bind).
+# Scripts add -f docker-compose.publish.yml only when publish_port is non-empty.
+# On t3, leave publish_port empty — HAProxy reaches lexmora-webui:80 on t3-net
+# (https://lexmora.xaigrok.ir).
+
+services:
+  lexmora-webui:
+    ports:
+      - target: 80
+        published: ${PUBLISH_PORT:-8090}
+        protocol: tcp

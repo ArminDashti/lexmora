@@ -1,0 +1,127 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply rounded-lg bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent-muted disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-danger {
+    @apply rounded-lg bg-red-600 px-4 py-2 font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply rounded-lg border border-surface-border bg-surface-raised px-4 py-2 text-gray-200 transition hover:border-accent hover:text-white;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-surface-border bg-surface-raised px-3 py-2 text-gray-100 placeholder-gray-500 outline-none transition focus:border-accent;
+  }
+
+  .select-field {
+    @apply w-full rounded-lg border border-surface-border bg-surface-raised px-3 py-2 text-gray-100 outline-none transition focus:border-accent;
+  }
+
+  .select-compact {
+    @apply py-1.5 text-sm;
+  }
+
+  .card {
+    @apply rounded-xl border border-surface-border bg-surface-raised p-6 shadow-lg;
+  }
+
+  .table-cell-truncate {
+    @apply max-w-[200px] truncate whitespace-nowrap;
+  }
+
+  .markdown-preview {
+    @apply leading-relaxed;
+  }
+
+  .markdown-preview :where(h1, h2, h3, h4) {
+    @apply mb-2 mt-4 font-semibold text-white first:mt-0;
+  }
+
+  .markdown-preview h1 {
+    @apply text-xl;
+  }
+
+  .markdown-preview h2 {
+    @apply text-lg;
+  }
+
+  .markdown-preview h3 {
+    @apply text-base;
+  }
+
+  .markdown-preview p {
+    @apply mb-3 last:mb-0;
+  }
+
+  .markdown-preview ul {
+    @apply mb-3 list-disc pe-5 ps-5;
+  }
+
+  .markdown-preview ol {
+    @apply mb-3 list-decimal pe-5 ps-5;
+  }
+
+  .markdown-preview li {
+    @apply mb-1;
+  }
+
+  .markdown-preview strong {
+    @apply font-semibold text-white;
+  }
+
+  .markdown-preview em {
+    @apply italic;
+  }
+
+  .markdown-preview code {
+    @apply rounded bg-surface-raised px-1 py-0.5 font-mono text-sm text-accent;
+  }
+
+  .markdown-preview pre {
+    @apply mb-3 overflow-x-auto rounded-lg bg-surface-raised p-3;
+  }
+
+  .markdown-preview pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .markdown-preview blockquote {
+    @apply mb-3 border-s-2 border-accent/50 ps-3 text-gray-300;
+  }
+
+  .markdown-preview a {
+    @apply text-accent underline;
+  }
+
+  .markdown-preview hr {
+    @apply my-4 border-surface-border;
+  }
+
+  .site-footer {
+    @apply grid shrink-0 grid-cols-[auto_1fr_auto] items-center gap-3 border-t border-surface-border px-5 py-3;
+  }
+
+  .site-footer-github {
+    @apply inline-flex min-h-10 min-w-10 items-center justify-center text-gray-200 transition hover:text-accent;
+  }
+
+  .site-footer-copy {
+    @apply m-0 justify-self-center text-center text-xs text-gray-500;
+  }
+
+  .site-footer-spacer {
+    @apply block h-10 w-10 justify-self-end;
+  }
+}

@@ -1,0 +1,38 @@
+*.exe
+*.EXE
+
+node_modules/
+dist/
+.env
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# --- auto: github-commit-push-all-repos ---
+# --- end auto ---
+# --- auto: large files (>5MB) ---
+
+# auto-managed large files (>5MB)
+node_modules/@esbuild/win32-x64/esbuild.exe
+node_modules/typescript/lib/tsc.js
+node_modules/typescript/lib/typescript.js
+
+# === auto-managed large files (>5MB) ===
+
+# BEGIN AUTO-MANAGED LARGE FILES (>5MB)
+node_modules/@esbuild/win32-x64/esbuild.exe
+node_modules/typescript/lib/tsc.js
+node_modules/typescript/lib/typescript.js
+# END AUTO-MANAGED LARGE FILES
+
+# === auto-managed large files (github-commit-push-all) ===
+node_modules/@esbuild/win32-x64/esbuild.exe
+node_modules/typescript/lib/tsc.js
+node_modules/typescript/lib/typescript.js
+
+# github-commit-push-all: auto-ignore large files (>5MB)
+
+# AUTO-IGNORE-LARGE-FILES (>5MB) â€” managed by github-commit-push-all
+# github-commit-push-all: large files (>5MB) — auto-managed
+
+# auto-managed: files > 5MB

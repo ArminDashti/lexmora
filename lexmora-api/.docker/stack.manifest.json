@@ -1,0 +1,11 @@
+{
+  "stackName": "lexmora",
+  "containerName": "lexmora-api",
+  "apiContainerName": "lexmora-api",
+  "postgresContainerName": "lexmora-pgsql",
+  "internalPort": "8080",
+  "apiImageTag": "lexmora-api:latest",
+  "publishPort": "8083",
+  "dockerNetwork": "t3-net",
+  "remoteWorkDir": "/cloud-admin/docker/lexmora"
+}

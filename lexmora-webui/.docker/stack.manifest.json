@@ -1,0 +1,7 @@
+{
+  "stackName": "lexmora-webui",
+  "webImageTag": "lexmora-webui:latest",
+  "webPublishPort": "8090",
+  "apiHost": "lexmora-api",
+  "apiPort": "8080"
+}
