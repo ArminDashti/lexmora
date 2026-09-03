@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.dev.vars
+.wrangler/
+scripts/t3_export.json
+scripts/t3_import.sql
+scripts/d1_batches/

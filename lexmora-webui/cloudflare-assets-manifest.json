@@ -1,0 +1,253 @@
+{
+  "manifest": {
+    "/apple-touch-icon.png": {
+      "hash": "5b20b210d0cbc718b860f0713df90415",
+      "size": 17495
+    },
+    "/favicon-32x32.png": {
+      "hash": "f0809a89d400fb9e607bc24d2d3f8eda",
+      "size": 907
+    },
+    "/favicon.ico": {
+      "hash": "c71cc1948f0447babcd429158dde603c",
+      "size": 2686
+    },
+    "/favicon.svg": {
+      "hash": "3dbc15b101541c3d4b30eee2c6c90e27",
+      "size": 196
+    },
+    "/index.html": {
+      "hash": "8719e0988942df175858e456dfc385e4",
+      "size": 1173
+    },
+    "/logo-full.png": {
+      "hash": "1c2d5c84513238778725919f8043d653",
+      "size": 236983
+    },
+    "/logo-mark.png": {
+      "hash": "fd14b33a7a46c3227ad66217c79c35f0",
+      "size": 170114
+    },
+    "/logo.png": {
+      "hash": "1c2d5c84513238778725919f8043d653",
+      "size": 236983
+    },
+    "/manifest.webmanifest": {
+      "hash": "49f942b4ba200d024b157104a8d1dbf0",
+      "size": 382
+    },
+    "/pwa-192x192.png": {
+      "hash": "182087e5ca6679dcd96c6656dafd596e",
+      "size": 19620
+    },
+    "/pwa-512x512.png": {
+      "hash": "834336e153f04ac6643c820f0c55336d",
+      "size": 124570
+    },
+    "/sw.js": {
+      "hash": "c677cbc46a0e4adeeec2dcb968356203",
+      "size": 2670
+    },
+    "/workbox-abeb32eb.js": {
+      "hash": "0e233ad26e783cbcff92534dd4768ace",
+      "size": 15507
+    },
+    "/_headers": {
+      "hash": "226e4288dfd28abb4dc36225f728f2be",
+      "size": 393
+    },
+    "/assets/AppLayout-DyRF-bXc.js": {
+      "hash": "580eecf277453f8a3d6ce6546eb53f64",
+      "size": 2926
+    },
+    "/assets/datetime-DIlrzQqQ.js": {
+      "hash": "621e77b350836011be0479e9e3b9a3c5",
+      "size": 72405
+    },
+    "/assets/HistoryView-CSrNFxGa.js": {
+      "hash": "2c7c08ecb2af9b48098bd6a8a3d22024",
+      "size": 10449
+    },
+    "/assets/index-Cq0Vlgil.js": {
+      "hash": "af809f2cdf6217857a8e8b4827d47bed",
+      "size": 97713
+    },
+    "/assets/index-RqVy13hS.css": {
+      "hash": "d516bed4f6ef8fa6038a1a6f2fb6dbc8",
+      "size": 19057
+    },
+    "/assets/instructionKey-DAj8sNLa.js": {
+      "hash": "c8f7f5cadbe31b58f9682c88d3f85ece",
+      "size": 1032
+    },
+    "/assets/InstructionsView-CoCjsb40.js": {
+      "hash": "d75e74dcb8c763349ca5717053cdc04c",
+      "size": 2504
+    },
+    "/assets/LoginView-DRtVbeRn.js": {
+      "hash": "c8dcd87a8066bc94d6f3b6efc1e5f609",
+      "size": 1594
+    },
+    "/assets/QuizView-DWicSM9r.js": {
+      "hash": "faba06da0be4b5f4a3f3087023a8e71c",
+      "size": 3672
+    },
+    "/assets/SettingsView-o9Hq7TZh.js": {
+      "hash": "10ae2f06ccf0c65a809ce61f408f3a83",
+      "size": 6751
+    },
+    "/assets/StatsView-CLT0yiFd.js": {
+      "hash": "48415521076077993eab2180b3d76c7a",
+      "size": 1748
+    },
+    "/assets/textDirection-DsyAwz3o.js": {
+      "hash": "91d16344a90e439244cca3ee650ed7f7",
+      "size": 200
+    },
+    "/assets/TransformView-BTEafNbu.js": {
+      "hash": "6b65fd020e1ee616cac2d80bf7372101",
+      "size": 9452
+    },
+    "/assets/workbox-window.prod.es5-BBnX5xw4.js": {
+      "hash": "cadd21be4a88598a4dec91a26a025df0",
+      "size": 5748
+    }
+  },
+  "files": {
+    "5b20b210d0cbc718b860f0713df90415": {
+      "path": "/apple-touch-icon.png",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\apple-touch-icon.png",
+      "size": 17495
+    },
+    "f0809a89d400fb9e607bc24d2d3f8eda": {
+      "path": "/favicon-32x32.png",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\favicon-32x32.png",
+      "size": 907
+    },
+    "c71cc1948f0447babcd429158dde603c": {
+      "path": "/favicon.ico",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\favicon.ico",
+      "size": 2686
+    },
+    "3dbc15b101541c3d4b30eee2c6c90e27": {
+      "path": "/favicon.svg",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\favicon.svg",
+      "size": 196
+    },
+    "8719e0988942df175858e456dfc385e4": {
+      "path": "/index.html",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\index.html",
+      "size": 1173
+    },
+    "1c2d5c84513238778725919f8043d653": {
+      "path": "/logo.png",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\logo.png",
+      "size": 236983
+    },
+    "fd14b33a7a46c3227ad66217c79c35f0": {
+      "path": "/logo-mark.png",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\logo-mark.png",
+      "size": 170114
+    },
+    "49f942b4ba200d024b157104a8d1dbf0": {
+      "path": "/manifest.webmanifest",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\manifest.webmanifest",
+      "size": 382
+    },
+    "182087e5ca6679dcd96c6656dafd596e": {
+      "path": "/pwa-192x192.png",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\pwa-192x192.png",
+      "size": 19620
+    },
+    "834336e153f04ac6643c820f0c55336d": {
+      "path": "/pwa-512x512.png",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\pwa-512x512.png",
+      "size": 124570
+    },
+    "c677cbc46a0e4adeeec2dcb968356203": {
+      "path": "/sw.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\sw.js",
+      "size": 2670
+    },
+    "0e233ad26e783cbcff92534dd4768ace": {
+      "path": "/workbox-abeb32eb.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\workbox-abeb32eb.js",
+      "size": 15507
+    },
+    "226e4288dfd28abb4dc36225f728f2be": {
+      "path": "/_headers",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\_headers",
+      "size": 393
+    },
+    "580eecf277453f8a3d6ce6546eb53f64": {
+      "path": "/assets/AppLayout-DyRF-bXc.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\AppLayout-DyRF-bXc.js",
+      "size": 2926
+    },
+    "621e77b350836011be0479e9e3b9a3c5": {
+      "path": "/assets/datetime-DIlrzQqQ.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\datetime-DIlrzQqQ.js",
+      "size": 72405
+    },
+    "2c7c08ecb2af9b48098bd6a8a3d22024": {
+      "path": "/assets/HistoryView-CSrNFxGa.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\HistoryView-CSrNFxGa.js",
+      "size": 10449
+    },
+    "af809f2cdf6217857a8e8b4827d47bed": {
+      "path": "/assets/index-Cq0Vlgil.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\index-Cq0Vlgil.js",
+      "size": 97713
+    },
+    "d516bed4f6ef8fa6038a1a6f2fb6dbc8": {
+      "path": "/assets/index-RqVy13hS.css",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\index-RqVy13hS.css",
+      "size": 19057
+    },
+    "c8f7f5cadbe31b58f9682c88d3f85ece": {
+      "path": "/assets/instructionKey-DAj8sNLa.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\instructionKey-DAj8sNLa.js",
+      "size": 1032
+    },
+    "d75e74dcb8c763349ca5717053cdc04c": {
+      "path": "/assets/InstructionsView-CoCjsb40.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\InstructionsView-CoCjsb40.js",
+      "size": 2504
+    },
+    "c8dcd87a8066bc94d6f3b6efc1e5f609": {
+      "path": "/assets/LoginView-DRtVbeRn.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\LoginView-DRtVbeRn.js",
+      "size": 1594
+    },
+    "faba06da0be4b5f4a3f3087023a8e71c": {
+      "path": "/assets/QuizView-DWicSM9r.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\QuizView-DWicSM9r.js",
+      "size": 3672
+    },
+    "10ae2f06ccf0c65a809ce61f408f3a83": {
+      "path": "/assets/SettingsView-o9Hq7TZh.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\SettingsView-o9Hq7TZh.js",
+      "size": 6751
+    },
+    "48415521076077993eab2180b3d76c7a": {
+      "path": "/assets/StatsView-CLT0yiFd.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\StatsView-CLT0yiFd.js",
+      "size": 1748
+    },
+    "91d16344a90e439244cca3ee650ed7f7": {
+      "path": "/assets/textDirection-DsyAwz3o.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\textDirection-DsyAwz3o.js",
+      "size": 200
+    },
+    "6b65fd020e1ee616cac2d80bf7372101": {
+      "path": "/assets/TransformView-BTEafNbu.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\TransformView-BTEafNbu.js",
+      "size": 9452
+    },
+    "cadd21be4a88598a4dec91a26a025df0": {
+      "path": "/assets/workbox-window.prod.es5-BBnX5xw4.js",
+      "file": "C:\\Users\\armin\\GitHub\\lexmora\\lexmora-webui\\dist\\assets\\workbox-window.prod.es5-BBnX5xw4.js",
+      "size": 5748
+    }
+  }
+}

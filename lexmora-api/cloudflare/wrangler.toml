@@ -1,0 +1,18 @@
+name = "lexmora-api"
+main = "src/index.ts"
+compatibility_date = "2026-08-31"
+workers_dev = true
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lexmora"
+database_id = "3ba3926f-5411-43fd-85a3-bdd66645cd88"
+migrations_dir = "migrations"
+
+[vars]
+CORS_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173,https://lexmora.armindashti.workers.dev"
+DEFAULT_USERNAME = "armin"

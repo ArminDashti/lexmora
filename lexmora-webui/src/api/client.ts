@@ -29,6 +29,13 @@ function withBase(path: string): string {
   return `${base}${path.startsWith('/') ? path : `/${path}`}`
 }
 
+function apiUrl(path: string): string {
+  const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '') || ''
+  const rel = withBase(`/api/v1${path}`)
+  if (!apiBase) return rel
+  return `${apiBase}${rel.startsWith('/') ? rel : `/${rel}`}`
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -40,7 +47,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.Authorization = `Bearer ${token}`
   }
 
-  const res = await fetch(withBase(`/api/v1${path}`), { ...options, headers })
+  const res = await fetch(apiUrl(path), { ...options, headers })
 
   if (res.status === 401) {
     clearAuth()
