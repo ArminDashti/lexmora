@@ -29,17 +29,19 @@ type Instruction struct {
 type HistoryType string
 
 const (
-	HistoryTypeSimplify HistoryType = "simplify"
-	HistoryTypeEnFa     HistoryType = "en_fa"
-	HistoryTypeFaEn     HistoryType = "fa_en"
-	HistoryTypeTermEn   HistoryType = "term_en"
-	HistoryTypeTermFa   HistoryType = "term_fa"
-	HistoryTypeRefine     HistoryType = "refine"
-	HistoryTypeSymptoms   HistoryType = "symptoms"
-	HistoryTypeCompareEn  HistoryType = "compare_en"
-	HistoryTypeCompareFa  HistoryType = "compare_fa"
-	HistoryTypeGrammarEn  HistoryType = "grammar_en"
-	HistoryTypeGrammarFa  HistoryType = "grammar_fa"
+	HistoryTypeSimplify  HistoryType = "simplify"
+	HistoryTypeEnFa      HistoryType = "en_fa"
+	HistoryTypeFaEn      HistoryType = "fa_en"
+	HistoryTypeTermEn    HistoryType = "term_en"
+	HistoryTypeTermFa    HistoryType = "term_fa"
+	HistoryTypeRefine    HistoryType = "refine"
+	HistoryTypeSymptoms  HistoryType = "symptoms"
+	HistoryTypeCompareEn HistoryType = "compare_en"
+	HistoryTypeCompareFa HistoryType = "compare_fa"
+	HistoryTypeGrammarEn HistoryType = "grammar_en"
+	HistoryTypeGrammarFa HistoryType = "grammar_fa"
+	HistoryTypeCursor    HistoryType = "cursor"
+	HistoryTypeFrontend  HistoryType = "frontend"
 )
 
 func (t HistoryType) DisplayName() string {
@@ -66,6 +68,10 @@ func (t HistoryType) DisplayName() string {
 		return "Grammar English"
 	case HistoryTypeGrammarFa:
 		return "Grammar Persian"
+	case HistoryTypeCursor:
+		return "Cursor"
+	case HistoryTypeFrontend:
+		return "Frontend"
 	default:
 		return string(t)
 	}
@@ -94,6 +100,8 @@ type StatsBucket struct {
 	Symptoms  int `json:"symptoms"`
 	Compare   int `json:"compare"`
 	Grammar   int `json:"grammar"`
+	Cursor    int `json:"cursor"`
+	Frontend  int `json:"frontend"`
 	Total     int `json:"total"`
 }
 
@@ -134,27 +142,81 @@ type LoginResponse struct {
 	Username string `json:"username"`
 }
 
-var InstructionKeys = []string{
-	"en-to-fa-general",
-	"en-to-fa-movie",
-	"en-to-fa-formal",
-	"en-to-fa-scientific",
-	"en-to-fa-music",
-	"fa-to-en-general",
-	"fa-to-en-formal",
-	"fa-to-en-scientific",
-	"simplify-en",
-	"refine-to-everyday",
-	"refine-to-formal",
-	"refine-to-slang",
-	"symptoms",
-	"term-for-everyday",
-	"term-for-formal",
-	"term-for-slang",
-	"compare-en",
-	"compare-fa",
-	"grammar-en",
-	"grammar-fa",
+// ScientificTopics are required extras when mode is scientific.
+var ScientificTopics = []string{
+	"general",
+	"aerospace",
+	"biology",
+	"chemistry",
+	"physics",
+	"medicine",
+	"computer-science",
+	"mathematics",
+	"earth-science",
+}
+
+var InstructionKeys = buildInstructionKeys()
+
+func buildInstructionKeys() []string {
+	keys := []string{
+		"translate-english-persian-general",
+		"translate-english-persian-movie",
+		"translate-english-persian-formal",
+		"translate-english-persian-music",
+	}
+	for _, t := range ScientificTopics {
+		keys = append(keys, "translate-english-persian-scientific-"+t)
+	}
+	keys = append(keys,
+		"translate-persian-english-general",
+		"translate-persian-english-formal",
+	)
+	for _, t := range ScientificTopics {
+		keys = append(keys, "translate-persian-english-scientific-"+t)
+	}
+	keys = append(keys,
+		"simplify-english-english",
+		"refine-english-english-everyday",
+		"refine-english-english-formal",
+		"refine-english-english-slang",
+		"symptoms-english-english",
+		"term-english-english-everyday",
+		"term-english-english-formal",
+		"term-english-english-slang",
+		"compare-english-english",
+		"compare-persian-persian",
+		"grammar-english-english",
+		"grammar-persian-persian",
+		"cursor-persian-english-skill",
+		"cursor-persian-english-agent",
+		"frontend-persian-english-for-agent",
+		"frontend-english-english-for-agent",
+	)
+	return keys
+}
+
+// OldInstructionKeyMigrations maps legacy keys to the new naming scheme.
+var OldInstructionKeyMigrations = map[string]string{
+	"en-to-fa-general":     "translate-english-persian-general",
+	"en-to-fa-movie":       "translate-english-persian-movie",
+	"en-to-fa-formal":      "translate-english-persian-formal",
+	"en-to-fa-scientific":  "translate-english-persian-scientific-general",
+	"en-to-fa-music":       "translate-english-persian-music",
+	"fa-to-en-general":     "translate-persian-english-general",
+	"fa-to-en-formal":      "translate-persian-english-formal",
+	"fa-to-en-scientific":  "translate-persian-english-scientific-general",
+	"simplify-en":          "simplify-english-english",
+	"refine-to-everyday":   "refine-english-english-everyday",
+	"refine-to-formal":     "refine-english-english-formal",
+	"refine-to-slang":      "refine-english-english-slang",
+	"symptoms":             "symptoms-english-english",
+	"term-for-everyday":    "term-english-english-everyday",
+	"term-for-formal":      "term-english-english-formal",
+	"term-for-slang":       "term-english-english-slang",
+	"compare-en":           "compare-english-english",
+	"compare-fa":           "compare-persian-persian",
+	"grammar-en":           "grammar-english-english",
+	"grammar-fa":           "grammar-persian-persian",
 }
 
 func FormatDateTime(t time.Time) string {

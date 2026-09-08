@@ -64,3 +64,14 @@ func (r *InstructionRepository) Upsert(ctx context.Context, key, content string)
 	}
 	return &i, nil
 }
+
+func (r *InstructionRepository) Delete(ctx context.Context, key string) error {
+	tag, err := r.pool.Exec(ctx, `DELETE FROM instructions WHERE key = $1`, key)
+	if err != nil {
+		return fmt.Errorf("delete instruction: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
+}

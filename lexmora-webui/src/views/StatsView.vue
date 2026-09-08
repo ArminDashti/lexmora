@@ -23,6 +23,8 @@ const categories = [
   { key: 'symptoms' as const, label: 'Symptoms' },
   { key: 'compare' as const, label: 'Compare' },
   { key: 'grammar' as const, label: 'Grammar' },
+  { key: 'cursor' as const, label: 'Cursor' },
+  { key: 'frontend' as const, label: 'Frontend' },
 ]
 
 onMounted(async () => {

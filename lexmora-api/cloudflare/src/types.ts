@@ -18,6 +18,8 @@ export type HistoryType =
   | 'compare_fa'
   | 'grammar_en'
   | 'grammar_fa'
+  | 'cursor'
+  | 'frontend'
 
 export const HISTORY_TYPE_DISPLAY: Record<HistoryType, string> = {
   simplify: 'Simplify',
@@ -31,6 +33,8 @@ export const HISTORY_TYPE_DISPLAY: Record<HistoryType, string> = {
   compare_fa: 'Compare Persian',
   grammar_en: 'Grammar English',
   grammar_fa: 'Grammar Persian',
+  cursor: 'Cursor',
+  frontend: 'Frontend',
 }
 
 export type UserRow = {

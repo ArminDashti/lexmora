@@ -174,10 +174,16 @@ export interface OptionItem {
   label: string
 }
 
+export interface ModeOption {
+  value: string
+  label: string
+  topics?: OptionItem[]
+}
+
 export interface DirectionOption {
   value: string
   label: string
-  modes: OptionItem[]
+  modes: ModeOption[]
 }
 
 export interface OperationOption {
@@ -196,6 +202,7 @@ export interface CreateInstructionPayload {
   operation: string
   direction?: string
   mode?: string
+  topic?: string
   style?: string
   language?: string
   content?: string
@@ -242,6 +249,8 @@ export interface StatsBucket {
   symptoms: number
   compare: number
   grammar: number
+  cursor: number
+  frontend: number
   total: number
 }
 

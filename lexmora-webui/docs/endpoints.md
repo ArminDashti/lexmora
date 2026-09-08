@@ -45,15 +45,19 @@ Derived from instruction keys:
 
 | Key pattern | UI |
 |-------------|-----|
-| `en-to-fa-{mode}` | Translate · English → Persian · mode |
-| `fa-to-en-{mode}` | Translate · Persian → English · mode |
-| `refine-to-{style}` | Refine · style |
-| `term-for-{style}` | Term · style |
-| `compare-{lang}` | Compare · language |
-| `simplify-en` | Simplify |
-| `symptoms` | Symptoms |
+| `translate-english-persian-{mode}` | Translate · English → Persian · mode |
+| `translate-persian-english-{mode}` | Translate · Persian → English · mode |
+| `translate-…-scientific-{topic}` | Translate · Scientific · topic |
+| `cursor-persian-english-{mode}` | Cursor · skill/agent |
+| `frontend-{dir}-for-agent` | Frontend · for-agent |
+| `refine-english-english-{style}` | Refine · style |
+| `term-english-english-{style}` | Term · style |
+| `compare-english-english` / `compare-persian-persian` | Compare · language |
+| `grammar-english-english` / `grammar-persian-persian` | Grammar · language |
+| `simplify-english-english` | Simplify |
+| `symptoms-english-english` | Symptoms |
 
-Create new modes/styles on the Instructions page (`POST /instructions` with `operation`, `direction`, `mode` / `style` / `language`).
+Create new modes/styles on the Instructions page (`POST /instructions` with `operation`, `direction`, `mode` / `style` / `language`, optional `topic`).
 
 ## Transform — `POST /api/v1/transform`
 
@@ -61,15 +65,16 @@ Create new modes/styles on the Instructions page (`POST /instructions` with `ope
 
 ```json
 {
-  "operation": "translate|simplify|term|refine|symptoms|compare",
+  "operation": "translate|cursor|frontend|simplify|term|refine|symptoms|compare|grammar",
   "text": "...",
   "text1": "...",
   "text2": "...",
-  "direction": "en-fa|fa-en",
-  "mode": "<slug matching an instruction key>",
+  "direction": "english-persian|persian-english|english-english",
+  "mode": "<slug>",
+  "topic": "<scientific topic>",
   "movie_name": "...",
   "language": "en|fa",
-  "style": "<slug matching an instruction key>"
+  "style": "<slug>"
 }
 ```
 
@@ -79,12 +84,15 @@ Only include fields relevant to the selected operation. Modes/styles must exist 
 
 | Operation | Required fields | History type |
 |-----------|-----------------|--------------|
-| `translate` | `text`, `direction`, `mode` (+ `movie_name` if mode is `movie`) | `en_fa` / `fa_en` |
+| `translate` | `text`, `direction`, `mode` (+ `topic` if scientific; `movie_name` if movie) | `en_fa` / `fa_en` |
+| `cursor` | `text`, `direction`, `mode` | `cursor` |
+| `frontend` | `text`, `direction`, `mode` | `frontend` |
 | `simplify` | `text` | `simplify` |
 | `term` | `text`, `style` (`language` optional) | `term_en` / `term_fa` |
 | `refine` | `text`, `style` | `refine` |
 | `symptoms` | `text` | `symptoms` |
 | `compare` | `text1`, `text2`, `language` | `compare_en` / `compare_fa` |
+| `grammar` | `text`, `language` | `grammar_en` / `grammar_fa` |
 
 ### Compare
 
@@ -101,8 +109,8 @@ Compare two words or phrases. Do not send `text`.
 
 - `language`: explanation language (`en` or `fa`)
 - History `input_text` is stored as `"ask vs request"`
-- Instruction keys: `compare-en`, `compare-fa`
+- Instruction keys: `compare-english-english`, `compare-persian-persian`
 
 ### Stats
 
-`StatsBucket` includes: `simplify`, `en_fa`, `fa_en`, `term`, `refine`, `symptoms`, `compare`, `total`.
+`StatsBucket` includes: `simplify`, `en_fa`, `fa_en`, `term`, `refine`, `symptoms`, `compare`, `grammar`, `cursor`, `frontend`, `total`.

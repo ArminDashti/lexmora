@@ -9,12 +9,19 @@ export type TransformRequest = {
   text2?: string
   direction?: string
   mode?: string
+  topic?: string
   movie_name?: string
   language?: string
   style?: string
 }
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+const knownDirections = [
+  'english-persian',
+  'persian-english',
+  'english-english',
+  'persian-persian',
+] as const
 
 function normalizeSlug(value?: string): string {
   if (!value) return ''
@@ -22,11 +29,53 @@ function normalizeSlug(value?: string): string {
   return slugPattern.test(s) ? s : ''
 }
 
+function normalizeDirection(dir?: string): string {
+  switch ((dir || '').trim().toLowerCase()) {
+    case 'en-fa':
+    case 'english-persian':
+      return 'english-persian'
+    case 'fa-en':
+    case 'persian-english':
+      return 'persian-english'
+    case 'en-en':
+    case 'english-english':
+      return 'english-english'
+    case 'fa-fa':
+    case 'persian-persian':
+      return 'persian-persian'
+    default:
+      return ''
+  }
+}
+
+function directionLabel(dir: string): string {
+  switch (dir) {
+    case 'english-persian':
+      return 'English → Persian'
+    case 'persian-english':
+      return 'Persian → English'
+    case 'english-english':
+      return 'English → English'
+    case 'persian-persian':
+      return 'Persian → Persian'
+    default:
+      return titleFromSlug(dir)
+  }
+}
+
 function titleFromSlug(slug: string): string {
   return slug
     .split('-')
     .map((p) => (p ? p[0].toUpperCase() + p.slice(1) : p))
     .join(' ')
+}
+
+function translateInstructionKey(dir: string, mode: string, topic?: string): string {
+  if (mode === 'scientific') {
+    const t = normalizeSlug(topic) || 'general'
+    return `translate-${dir}-scientific-${t}`
+  }
+  return `translate-${dir}-${mode}`
 }
 
 async function requireInstruction(env: Env, key: string) {
@@ -44,19 +93,16 @@ async function resolveTransform(
 
   switch (op) {
     case 'translate': {
-      const dir = (req.direction || '').trim().toLowerCase()
+      const dir = normalizeDirection(req.direction)
       const mode = normalizeSlug(req.mode)
       if (!mode) throw new Error(`invalid translate mode: ${req.mode}`)
-      let key = ''
-      let historyType: HistoryType
-      if (dir === 'en-fa') {
-        key = `en-to-fa-${mode}`
-        historyType = 'en_fa'
-      } else if (dir === 'fa-en') {
-        key = `fa-to-en-${mode}`
-        historyType = 'fa_en'
-      } else {
+      if (dir !== 'english-persian' && dir !== 'persian-english') {
         throw new Error(`invalid translate direction: ${req.direction}`)
+      }
+      const historyType: HistoryType = dir === 'english-persian' ? 'en_fa' : 'fa_en'
+      const key = translateInstructionKey(dir, mode, req.topic)
+      if (mode === 'scientific') {
+        metadata.topic = normalizeSlug(req.topic) || 'general'
       }
       await requireInstruction(env, key)
       if (mode === 'movie') {
@@ -68,8 +114,28 @@ async function resolveTransform(
       }
       return { historyType, instructionKey: key, userText: text, metadata }
     }
+    case 'cursor': {
+      const dir = normalizeDirection(req.direction)
+      const mode = normalizeSlug(req.mode)
+      if (dir !== 'persian-english') throw new Error(`invalid cursor direction: ${req.direction}`)
+      if (mode !== 'skill' && mode !== 'agent') throw new Error(`invalid cursor mode: ${req.mode}`)
+      const key = `cursor-persian-english-${mode}`
+      await requireInstruction(env, key)
+      return { historyType: 'cursor', instructionKey: key, userText: text, metadata }
+    }
+    case 'frontend': {
+      const dir = normalizeDirection(req.direction)
+      const mode = normalizeSlug(req.mode)
+      if (mode !== 'for-agent') throw new Error(`invalid frontend mode: ${req.mode}`)
+      if (dir !== 'persian-english' && dir !== 'english-english') {
+        throw new Error(`invalid frontend direction: ${req.direction}`)
+      }
+      const key = `frontend-${dir}-for-agent`
+      await requireInstruction(env, key)
+      return { historyType: 'frontend', instructionKey: key, userText: text, metadata }
+    }
     case 'simplify': {
-      const key = 'simplify-en'
+      const key = 'simplify-english-english'
       await requireInstruction(env, key)
       return { historyType: 'simplify', instructionKey: key, userText: text, metadata }
     }
@@ -77,7 +143,7 @@ async function resolveTransform(
       const lang = (req.language || '').trim().toLowerCase()
       const style = normalizeSlug(req.style)
       if (!style) throw new Error(`invalid term style: ${req.style}`)
-      const key = `term-for-${style}`
+      const key = `term-english-english-${style}`
       await requireInstruction(env, key)
       if (lang === 'en') {
         return {
@@ -101,37 +167,37 @@ async function resolveTransform(
     case 'refine': {
       const style = normalizeSlug(req.style)
       if (!style) throw new Error(`invalid refine style: ${req.style}`)
-      const key = `refine-to-${style}`
+      const key = `refine-english-english-${style}`
       await requireInstruction(env, key)
       return { historyType: 'refine', instructionKey: key, userText: text, metadata }
     }
     case 'symptoms': {
-      const key = 'symptoms'
+      const key = 'symptoms-english-english'
       await requireInstruction(env, key)
       return { historyType: 'symptoms', instructionKey: key, userText: text, metadata }
     }
     case 'compare': {
-      let lang = (req.language || '').trim().toLowerCase() || 'en'
+      const lang = (req.language || '').trim().toLowerCase() || 'en'
       const text1 = (req.text1 || '').trim()
       const text2 = (req.text2 || '').trim()
       metadata.text1 = text1
       metadata.text2 = text2
       metadata.language = lang
-      const key = `compare-${lang}`
+      const key = lang === 'en' ? 'compare-english-english' : lang === 'fa' ? 'compare-persian-persian' : ''
+      if (!key) throw new Error(`invalid compare language: ${req.language}`)
       await requireInstruction(env, key)
       const userMsg = `Compare these two words or phrases:\n\n1: ${text1}\n2: ${text2}`
       if (lang === 'en') return { historyType: 'compare_en', instructionKey: key, userText: userMsg, metadata }
-      if (lang === 'fa') return { historyType: 'compare_fa', instructionKey: key, userText: userMsg, metadata }
-      throw new Error(`invalid compare language: ${req.language}`)
+      return { historyType: 'compare_fa', instructionKey: key, userText: userMsg, metadata }
     }
     case 'grammar': {
-      let lang = (req.language || '').trim().toLowerCase() || 'en'
+      const lang = (req.language || '').trim().toLowerCase() || 'en'
       metadata.language = lang
-      const key = `grammar-${lang}`
+      const key = lang === 'en' ? 'grammar-english-english' : lang === 'fa' ? 'grammar-persian-persian' : ''
+      if (!key) throw new Error(`invalid grammar language: ${req.language}`)
       await requireInstruction(env, key)
       if (lang === 'en') return { historyType: 'grammar_en', instructionKey: key, userText: text, metadata }
-      if (lang === 'fa') return { historyType: 'grammar_fa', instructionKey: key, userText: text, metadata }
-      throw new Error(`invalid grammar language: ${req.language}`)
+      return { historyType: 'grammar_fa', instructionKey: key, userText: text, metadata }
     }
     default:
       throw new Error(`invalid operation: ${req.operation}`)
@@ -188,7 +254,8 @@ export async function transform(env: Env, req: TransformRequest) {
 }
 
 type OptionItem = { value: string; label: string }
-type DirectionOption = { value: string; label: string; modes: OptionItem[] }
+type ModeOption = { value: string; label: string; topics?: OptionItem[] }
+type DirectionOption = { value: string; label: string; modes: ModeOption[] }
 type OperationOption = {
   value: string
   label: string
@@ -208,10 +275,56 @@ function sortedLanguageOptions(set: Set<string>): OptionItem[] {
   }))
 }
 
+function splitOpDirMode(rest: string): { dir: string; mode: string; topic: string } | null {
+  for (const d of knownDirections) {
+    if (rest === d) return { dir: d, mode: '', topic: '' }
+    const prefix = `${d}-`
+    if (!rest.startsWith(prefix)) continue
+    const modePart = rest.slice(prefix.length)
+    if (!modePart) return { dir: d, mode: '', topic: '' }
+    if (modePart.startsWith('scientific-')) {
+      const topic = modePart.slice('scientific-'.length)
+      if (!topic) return null
+      return { dir: d, mode: 'scientific', topic }
+    }
+    return { dir: d, mode: modePart, topic: '' }
+  }
+  return null
+}
+
+function buildDirectionOptions(store: Map<string, Map<string, Set<string>>>): DirectionOption[] {
+  const dirs: DirectionOption[] = []
+  for (const [dir, modes] of store) {
+    const modeOpts: ModeOption[] = [...modes.keys()].sort().map((m) => {
+      const topics = modes.get(m)!
+      const opt: ModeOption = { value: m, label: titleFromSlug(m) }
+      if (topics.size > 0 || m === 'scientific') {
+        opt.topics = [...topics].sort().map((t) => ({ value: t, label: titleFromSlug(t) }))
+      }
+      return opt
+    })
+    dirs.push({ value: dir, label: directionLabel(dir), modes: modeOpts })
+  }
+  return dirs
+}
+
+function ensureMode(
+  store: Map<string, Map<string, Set<string>>>,
+  dir: string,
+  mode: string,
+  topic: string,
+) {
+  if (!store.has(dir)) store.set(dir, new Map())
+  const modes = store.get(dir)!
+  if (!modes.has(mode)) modes.set(mode, new Set())
+  if (topic) modes.get(mode)!.add(topic)
+}
+
 export async function getTransformOptions(env: Env) {
   const { results } = await env.DB.prepare('SELECT key FROM instructions').all<{ key: string }>()
-  const enFaModes = new Set<string>()
-  const faEnModes = new Set<string>()
+  const translateDirs = new Map<string, Map<string, Set<string>>>()
+  const cursorDirs = new Map<string, Map<string, Set<string>>>()
+  const frontendDirs = new Map<string, Map<string, Set<string>>>()
   const refineStyles = new Set<string>()
   const termStyles = new Set<string>()
   const compareLangs = new Set<string>()
@@ -221,23 +334,31 @@ export async function getTransformOptions(env: Env) {
 
   for (const item of results ?? []) {
     const key = item.key
-    if (key.startsWith('en-to-fa-')) enFaModes.add(key.slice('en-to-fa-'.length))
-    else if (key.startsWith('fa-to-en-')) faEnModes.add(key.slice('fa-to-en-'.length))
-    else if (key.startsWith('refine-to-')) refineStyles.add(key.slice('refine-to-'.length))
-    else if (key.startsWith('term-for-')) termStyles.add(key.slice('term-for-'.length))
-    else if (key.startsWith('compare-')) compareLangs.add(key.slice('compare-'.length))
-    else if (key.startsWith('grammar-')) grammarLangs.add(key.slice('grammar-'.length))
-    else if (key === 'simplify-en') hasSimplify = true
-    else if (key === 'symptoms') hasSymptoms = true
+    if (key.startsWith('translate-')) {
+      const parsed = splitOpDirMode(key.slice('translate-'.length))
+      if (parsed) ensureMode(translateDirs, parsed.dir, parsed.mode, parsed.topic)
+    } else if (key.startsWith('cursor-')) {
+      const parsed = splitOpDirMode(key.slice('cursor-'.length))
+      if (parsed) ensureMode(cursorDirs, parsed.dir, parsed.mode, parsed.topic)
+    } else if (key.startsWith('frontend-')) {
+      const parsed = splitOpDirMode(key.slice('frontend-'.length))
+      if (parsed) ensureMode(frontendDirs, parsed.dir, parsed.mode, parsed.topic)
+    } else if (key.startsWith('refine-english-english-')) {
+      refineStyles.add(key.slice('refine-english-english-'.length))
+    } else if (key.startsWith('term-english-english-')) {
+      termStyles.add(key.slice('term-english-english-'.length))
+    } else if (key === 'compare-english-english') compareLangs.add('en')
+    else if (key === 'compare-persian-persian') compareLangs.add('fa')
+    else if (key === 'grammar-english-english') grammarLangs.add('en')
+    else if (key === 'grammar-persian-persian') grammarLangs.add('fa')
+    else if (key === 'simplify-english-english') hasSimplify = true
+    else if (key === 'symptoms-english-english') hasSymptoms = true
   }
 
   const ops: OperationOption[] = []
-  if (enFaModes.size || faEnModes.size) {
-    const dirs: DirectionOption[] = []
-    if (enFaModes.size) dirs.push({ value: 'en-fa', label: 'English → Persian', modes: sortedOptions(enFaModes) })
-    if (faEnModes.size) dirs.push({ value: 'fa-en', label: 'Persian → English', modes: sortedOptions(faEnModes) })
-    ops.push({ value: 'translate', label: 'Translate', directions: dirs })
-  }
+  if (translateDirs.size) ops.push({ value: 'translate', label: 'Translate', directions: buildDirectionOptions(translateDirs) })
+  if (cursorDirs.size) ops.push({ value: 'cursor', label: 'Cursor', directions: buildDirectionOptions(cursorDirs) })
+  if (frontendDirs.size) ops.push({ value: 'frontend', label: 'Frontend', directions: buildDirectionOptions(frontendDirs) })
   if (hasSimplify) ops.push({ value: 'simplify', label: 'Simplify' })
   if (termStyles.size) {
     ops.push({
@@ -264,42 +385,62 @@ export async function buildInstructionKey(req: {
   operation?: string
   direction?: string
   mode?: string
+  topic?: string
   style?: string
   language?: string
 }): Promise<string> {
   const op = (req.operation || '').trim().toLowerCase()
   switch (op) {
     case 'translate': {
-      const dir = (req.direction || '').trim().toLowerCase()
+      const dir = normalizeDirection(req.direction)
       const mode = normalizeSlug(req.mode)
       if (!mode) throw new Error(`invalid mode: ${req.mode}`)
-      if (dir === 'en-fa') return `en-to-fa-${mode}`
-      if (dir === 'fa-en') return `fa-to-en-${mode}`
-      throw new Error(`invalid direction: ${req.direction}`)
+      if (dir !== 'english-persian' && dir !== 'persian-english') {
+        throw new Error(`invalid direction: ${req.direction}`)
+      }
+      return translateInstructionKey(dir, mode, req.topic)
+    }
+    case 'cursor': {
+      const dir = normalizeDirection(req.direction)
+      const mode = normalizeSlug(req.mode)
+      if (dir !== 'persian-english') throw new Error(`invalid direction: ${req.direction}`)
+      if (mode !== 'skill' && mode !== 'agent') throw new Error(`invalid mode: ${req.mode}`)
+      return `cursor-persian-english-${mode}`
+    }
+    case 'frontend': {
+      const dir = normalizeDirection(req.direction)
+      const mode = normalizeSlug(req.mode)
+      if (mode !== 'for-agent') throw new Error(`invalid mode: ${req.mode}`)
+      if (dir !== 'persian-english' && dir !== 'english-english') {
+        throw new Error(`invalid direction: ${req.direction}`)
+      }
+      return `frontend-${dir}-for-agent`
     }
     case 'refine': {
-      let style = normalizeSlug(req.style) || normalizeSlug(req.mode)
+      const style = normalizeSlug(req.style) || normalizeSlug(req.mode)
       if (!style) throw new Error(`invalid style: ${req.style}`)
-      return `refine-to-${style}`
+      return `refine-english-english-${style}`
     }
     case 'term': {
-      let style = normalizeSlug(req.style) || normalizeSlug(req.mode)
+      const style = normalizeSlug(req.style) || normalizeSlug(req.mode)
       if (!style) throw new Error(`invalid style: ${req.style}`)
-      return `term-for-${style}`
+      return `term-english-english-${style}`
     }
     case 'simplify':
-      return 'simplify-en'
+      return 'simplify-english-english'
     case 'symptoms':
-      return 'symptoms'
+      return 'symptoms-english-english'
     case 'compare': {
-      let lang = (req.language || '').trim().toLowerCase() || normalizeSlug(req.mode)
-      if (lang !== 'en' && lang !== 'fa') throw new Error(`invalid language: ${req.language}`)
-      return `compare-${lang}`
+      const lang = (req.language || '').trim().toLowerCase() || normalizeSlug(req.mode)
+      if (lang === 'en') return 'compare-english-english'
+      if (lang === 'fa') return 'compare-persian-persian'
+      throw new Error(`invalid language: ${req.language}`)
     }
     case 'grammar': {
-      let lang = (req.language || '').trim().toLowerCase() || 'en'
-      if (lang !== 'en' && lang !== 'fa') throw new Error(`invalid language: ${req.language}`)
-      return `grammar-${lang}`
+      const lang = (req.language || '').trim().toLowerCase() || 'en'
+      if (lang === 'en') return 'grammar-english-english'
+      if (lang === 'fa') return 'grammar-persian-persian'
+      throw new Error(`invalid language: ${req.language}`)
     }
     default:
       throw new Error(`invalid operation: ${req.operation}`)

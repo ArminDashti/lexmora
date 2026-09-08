@@ -17,4 +17,4 @@ build_image_on: "local"
 
 ssh: "ssh t3"
 
-volume_dir: "/home/cloud-admin/docker/lexmora"
+volume_dir: "/cloud-admin/docker/lexmora"

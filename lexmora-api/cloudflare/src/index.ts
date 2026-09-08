@@ -279,9 +279,24 @@ function addToBucket(
     case 'grammar_fa':
       b.grammar += count
       break
+    case 'cursor':
+      b.cursor += count
+      break
+    case 'frontend':
+      b.frontend += count
+      break
   }
   b.total =
-    b.simplify + b.en_fa + b.fa_en + b.term + b.refine + b.symptoms + b.compare + b.grammar
+    b.simplify +
+    b.en_fa +
+    b.fa_en +
+    b.term +
+    b.refine +
+    b.symptoms +
+    b.compare +
+    b.grammar +
+    b.cursor +
+    b.frontend
 }
 
 async function countByPeriod(env: Env, since?: string, until?: string) {
@@ -309,6 +324,8 @@ async function countByPeriod(env: Env, since?: string, until?: string) {
     symptoms: 0,
     compare: 0,
     grammar: 0,
+    cursor: 0,
+    frontend: 0,
     total: 0,
   }
   for (const row of results ?? []) addToBucket(bucket, row.type, row.c)

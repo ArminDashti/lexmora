@@ -82,14 +82,17 @@ Derived from instruction keys (not hardcoded allow-lists):
 
 | Key pattern | UI |
 |-------------|-----|
-| `en-to-fa-{mode}` | Translate · English → Persian · mode |
-| `fa-to-en-{mode}` | Translate · Persian → English · mode |
-| `refine-to-{style}` | Refine · style |
-| `term-for-{style}` | Term · style |
-| `compare-{lang}` | Compare · language |
-| `grammar-{lang}` | Grammar · language |
-| `simplify-en` | Simplify |
-| `symptoms` | Symptoms |
+| `translate-english-persian-{mode}` | Translate · English → Persian · mode |
+| `translate-english-persian-scientific-{topic}` | Translate · English → Persian · Scientific · topic |
+| `translate-persian-english-{mode}` | Translate · Persian → English · mode |
+| `cursor-persian-english-{mode}` | Cursor · Persian → English · skill/agent |
+| `frontend-{dir}-for-agent` | Frontend · direction · for-agent |
+| `refine-english-english-{style}` | Refine · style |
+| `term-english-english-{style}` | Term · style |
+| `compare-english-english` / `compare-persian-persian` | Compare · language |
+| `grammar-english-english` / `grammar-persian-persian` | Grammar · language |
+| `simplify-english-english` | Simplify |
+| `symptoms-english-english` | Symptoms |
 
 Create new modes/styles via `POST /instructions`.
 
@@ -99,12 +102,13 @@ Create new modes/styles via `POST /instructions`.
 
 ```json
 {
-  "operation": "translate|simplify|term|refine|symptoms|compare|grammar",
+  "operation": "translate|cursor|frontend|simplify|term|refine|symptoms|compare|grammar",
   "text": "...",
   "text1": "...",
   "text2": "...",
-  "direction": "en-fa|fa-en",
+  "direction": "english-persian|persian-english|english-english|persian-persian",
   "mode": "<slug matching an instruction key>",
+  "topic": "<scientific topic when mode is scientific>",
   "movie_name": "...",
   "language": "en|fa",
   "style": "<slug matching an instruction key>"
@@ -117,7 +121,9 @@ Only include fields relevant to the selected operation. Modes/styles must exist 
 
 | Operation | Required fields | History type |
 |-----------|-----------------|--------------|
-| `translate` | `text`, `direction`, `mode` (`movie_name` optional when mode is `movie`) | `en_fa` / `fa_en` |
+| `translate` | `text`, `direction`, `mode` (`topic` when scientific; `movie_name` optional when movie) | `en_fa` / `fa_en` |
+| `cursor` | `text`, `direction` (`persian-english`), `mode` (`skill`\|`agent`) | `cursor` |
+| `frontend` | `text`, `direction`, `mode` (`for-agent`) | `frontend` |
 | `simplify` | `text` | `simplify` |
 | `term` | `text`, `style` (`language` optional) | `term_en` / `term_fa` |
 | `refine` | `text`, `style` | `refine` |
@@ -138,7 +144,7 @@ Only include fields relevant to the selected operation. Modes/styles must exist 
 
 - Do not send `text` for this operation
 - History `input_text` is stored as `"ask vs request"`
-- Instruction keys: `compare-en`, `compare-fa`
+- Instruction keys: `compare-english-english`, `compare-persian-persian`
 
 ### Transform response
 
@@ -150,7 +156,7 @@ Only include fields relevant to the selected operation. Modes/styles must exist 
   "input_text": "ask vs request",
   "result_text": "...",
   "model": "anthropic/claude-3.5-sonnet",
-  "instruction_key": "compare-en",
+  "instruction_key": "compare-english-english",
   "created_at": "2026-07-16T17:00:00Z",
   "formatted_date": "2026:07:16 17:00"
 }
@@ -158,7 +164,7 @@ Only include fields relevant to the selected operation. Modes/styles must exist 
 
 ### Stats
 
-`StatsBucket` includes: `simplify`, `en_fa`, `fa_en`, `term`, `refine`, `symptoms`, `compare`, `grammar`, `total`.
+`StatsBucket` includes: `simplify`, `en_fa`, `fa_en`, `term`, `refine`, `symptoms`, `compare`, `grammar`, `cursor`, `frontend`, `total`.
 
 ## Settings — models and credits
 

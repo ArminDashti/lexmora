@@ -203,7 +203,7 @@ func (r *HistoryRepository) CountByPeriod(ctx context.Context, since, until *tim
 		}
 		addToBucket(&bucket, row.Type, row.Count)
 	}
-	bucket.Total = bucket.Simplify + bucket.EnFa + bucket.FaEn + bucket.Term + bucket.Refine + bucket.Symptoms + bucket.Compare + bucket.Grammar
+	bucket.Total = bucket.Simplify + bucket.EnFa + bucket.FaEn + bucket.Term + bucket.Refine + bucket.Symptoms + bucket.Compare + bucket.Grammar + bucket.Cursor + bucket.Frontend
 	return bucket, rows.Err()
 }
 
@@ -312,6 +312,10 @@ func addToBucket(b *domain.StatsBucket, t domain.HistoryType, count int) {
 		b.Compare += count
 	case domain.HistoryTypeGrammarEn, domain.HistoryTypeGrammarFa:
 		b.Grammar += count
+	case domain.HistoryTypeCursor:
+		b.Cursor += count
+	case domain.HistoryTypeFrontend:
+		b.Frontend += count
 	}
 }
 

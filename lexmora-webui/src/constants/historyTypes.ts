@@ -10,4 +10,6 @@ export const HISTORY_TYPE_OPTIONS = [
   { value: 'compare_fa', label: 'Compare Persian' },
   { value: 'grammar_en', label: 'Grammar English' },
   { value: 'grammar_fa', label: 'Grammar Persian' },
+  { value: 'cursor', label: 'Cursor' },
+  { value: 'frontend', label: 'Frontend' },
 ] as const

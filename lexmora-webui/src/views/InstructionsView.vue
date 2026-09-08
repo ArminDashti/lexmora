@@ -21,6 +21,7 @@ const context = computed<InstructionContext>(() => ({
   operation: String(route.query.operation ?? ''),
   direction: route.query.direction ? String(route.query.direction) : undefined,
   mode: route.query.mode ? String(route.query.mode) : undefined,
+  topic: route.query.topic ? String(route.query.topic) : undefined,
   style: route.query.style ? String(route.query.style) : undefined,
   language: route.query.language ? String(route.query.language) : undefined,
 }))

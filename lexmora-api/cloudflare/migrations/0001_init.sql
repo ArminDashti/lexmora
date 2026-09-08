@@ -36,7 +36,9 @@ CREATE TABLE history (
       'compare_en',
       'compare_fa',
       'grammar_en',
-      'grammar_fa'
+      'grammar_fa',
+      'cursor',
+      'frontend'
     )
   ),
   input_text TEXT NOT NULL,

@@ -21,6 +21,7 @@ type TransformRequest struct {
 	Text2     string `json:"text2"`
 	Direction string `json:"direction"`
 	Mode      string `json:"mode"`
+	Topic     string `json:"topic"`
 	MovieName string `json:"movie_name"`
 	Language  string `json:"language"`
 	Style     string `json:"style"`
@@ -117,22 +118,31 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 
 	switch op {
 	case "translate":
-		dir := strings.ToLower(strings.TrimSpace(req.Direction))
+		dir := normalizeDirection(req.Direction)
 		mode := normalizeSlug(req.Mode)
 		if mode == "" {
 			return "", "", "", nil, fmt.Errorf("invalid translate mode: %s", req.Mode)
 		}
-		var key string
+		if dir != "english-persian" && dir != "persian-english" {
+			return "", "", "", nil, fmt.Errorf("invalid translate direction: %s", req.Direction)
+		}
 		var historyType domain.HistoryType
 		switch dir {
-		case "en-fa":
-			key = "en-to-fa-" + mode
+		case "english-persian":
 			historyType = domain.HistoryTypeEnFa
-		case "fa-en":
-			key = "fa-to-en-" + mode
+		case "persian-english":
 			historyType = domain.HistoryTypeFaEn
-		default:
-			return "", "", "", nil, fmt.Errorf("invalid translate direction: %s", req.Direction)
+		}
+		key, err := translateInstructionKey(dir, mode, req.Topic)
+		if err != nil {
+			return "", "", "", nil, err
+		}
+		if mode == "scientific" {
+			topic := normalizeSlug(req.Topic)
+			if topic == "" {
+				topic = "general"
+			}
+			metadata["topic"] = topic
 		}
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
@@ -146,8 +156,38 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 		}
 		return historyType, key, text, metadata, nil
 
+	case "cursor":
+		dir := normalizeDirection(req.Direction)
+		mode := normalizeSlug(req.Mode)
+		if dir != "persian-english" {
+			return "", "", "", nil, fmt.Errorf("invalid cursor direction: %s", req.Direction)
+		}
+		if mode != "skill" && mode != "agent" {
+			return "", "", "", nil, fmt.Errorf("invalid cursor mode: %s", req.Mode)
+		}
+		key := "cursor-persian-english-" + mode
+		if err := s.requireInstruction(ctx, key); err != nil {
+			return "", "", "", nil, err
+		}
+		return domain.HistoryTypeCursor, key, text, metadata, nil
+
+	case "frontend":
+		dir := normalizeDirection(req.Direction)
+		mode := normalizeSlug(req.Mode)
+		if mode != "for-agent" {
+			return "", "", "", nil, fmt.Errorf("invalid frontend mode: %s", req.Mode)
+		}
+		if dir != "persian-english" && dir != "english-english" {
+			return "", "", "", nil, fmt.Errorf("invalid frontend direction: %s", req.Direction)
+		}
+		key := "frontend-" + dir + "-for-agent"
+		if err := s.requireInstruction(ctx, key); err != nil {
+			return "", "", "", nil, err
+		}
+		return domain.HistoryTypeFrontend, key, text, metadata, nil
+
 	case "simplify":
-		key := "simplify-en"
+		key := "simplify-english-english"
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
 		}
@@ -159,7 +199,7 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 		if style == "" {
 			return "", "", "", nil, fmt.Errorf("invalid term style: %s", req.Style)
 		}
-		key := "term-for-" + style
+		key := "term-english-english-" + style
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
 		}
@@ -169,7 +209,6 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 		case "fa":
 			return domain.HistoryTypeTermFa, key, "Find a Persian term for this description:\n\n" + text, metadata, nil
 		case "":
-			// Language optional: instruction detects from input (legacy UI omitted language).
 			return domain.HistoryTypeTermEn, key, text, metadata, nil
 		default:
 			return "", "", "", nil, fmt.Errorf("invalid term language: %s", req.Language)
@@ -180,14 +219,14 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 		if style == "" {
 			return "", "", "", nil, fmt.Errorf("invalid refine style: %s", req.Style)
 		}
-		key := "refine-to-" + style
+		key := "refine-english-english-" + style
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
 		}
 		return domain.HistoryTypeRefine, key, text, metadata, nil
 
 	case "symptoms":
-		key := "symptoms"
+		key := "symptoms-english-english"
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
 		}
@@ -203,7 +242,15 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 		metadata["text1"] = text1
 		metadata["text2"] = text2
 		metadata["language"] = lang
-		key := "compare-" + lang
+		var key string
+		switch lang {
+		case "en":
+			key = "compare-english-english"
+		case "fa":
+			key = "compare-persian-persian"
+		default:
+			return "", "", "", nil, fmt.Errorf("invalid compare language: %s", req.Language)
+		}
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
 		}
@@ -223,7 +270,15 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 			lang = "en"
 		}
 		metadata["language"] = lang
-		key := "grammar-" + lang
+		var key string
+		switch lang {
+		case "en":
+			key = "grammar-english-english"
+		case "fa":
+			key = "grammar-persian-persian"
+		default:
+			return "", "", "", nil, fmt.Errorf("invalid grammar language: %s", req.Language)
+		}
 		if err := s.requireInstruction(ctx, key); err != nil {
 			return "", "", "", nil, err
 		}
@@ -238,6 +293,47 @@ func (s *TransformService) resolveTransform(ctx context.Context, req TransformRe
 
 	default:
 		return "", "", "", nil, fmt.Errorf("invalid operation: %s", req.Operation)
+	}
+}
+
+func translateInstructionKey(dir, mode, topic string) (string, error) {
+	if mode == "scientific" {
+		t := normalizeSlug(topic)
+		if t == "" {
+			t = "general"
+		}
+		return "translate-" + dir + "-scientific-" + t, nil
+	}
+	return "translate-" + dir + "-" + mode, nil
+}
+
+func normalizeDirection(dir string) string {
+	switch strings.ToLower(strings.TrimSpace(dir)) {
+	case "en-fa", "english-persian":
+		return "english-persian"
+	case "fa-en", "persian-english":
+		return "persian-english"
+	case "en-en", "english-english":
+		return "english-english"
+	case "fa-fa", "persian-persian":
+		return "persian-persian"
+	default:
+		return ""
+	}
+}
+
+func directionLabel(dir string) string {
+	switch dir {
+	case "english-persian":
+		return "English → Persian"
+	case "persian-english":
+		return "Persian → English"
+	case "english-english":
+		return "English → English"
+	case "persian-persian":
+		return "Persian → Persian"
+	default:
+		return titleFromSlug(dir)
 	}
 }
 
@@ -280,10 +376,16 @@ type OptionItem struct {
 	Label string `json:"label"`
 }
 
+type ModeOption struct {
+	Value  string       `json:"value"`
+	Label  string       `json:"label"`
+	Topics []OptionItem `json:"topics,omitempty"`
+}
+
 type DirectionOption struct {
 	Value string       `json:"value"`
 	Label string       `json:"label"`
-	Modes []OptionItem `json:"modes"`
+	Modes []ModeOption `json:"modes"`
 }
 
 type OperationOption struct {
@@ -298,14 +400,23 @@ type TransformOptions struct {
 	Operations []OperationOption `json:"operations"`
 }
 
+var knownDirections = []string{
+	"english-persian",
+	"persian-english",
+	"english-english",
+	"persian-persian",
+}
+
 func (s *TransformService) GetOptions(ctx context.Context) (*TransformOptions, error) {
 	items, err := s.instructionSvc.List(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	enFaModes := map[string]struct{}{}
-	faEnModes := map[string]struct{}{}
+	// dir -> mode -> topics (empty set means plain mode)
+	translateDirs := map[string]map[string]map[string]struct{}{}
+	cursorDirs := map[string]map[string]map[string]struct{}{}
+	frontendDirs := map[string]map[string]map[string]struct{}{}
 	refineStyles := map[string]struct{}{}
 	termStyles := map[string]struct{}{}
 	compareLangs := map[string]struct{}{}
@@ -313,68 +424,82 @@ func (s *TransformService) GetOptions(ctx context.Context) (*TransformOptions, e
 	hasSimplify := false
 	hasSymptoms := false
 
+	ensureMode := func(store map[string]map[string]map[string]struct{}, dir, mode, topic string) {
+		if store[dir] == nil {
+			store[dir] = map[string]map[string]struct{}{}
+		}
+		if store[dir][mode] == nil {
+			store[dir][mode] = map[string]struct{}{}
+		}
+		if topic != "" {
+			store[dir][mode][topic] = struct{}{}
+		}
+	}
+
 	for _, item := range items {
 		key := item.Key
 		switch {
-		case strings.HasPrefix(key, "en-to-fa-"):
-			mode := strings.TrimPrefix(key, "en-to-fa-")
-			if mode != "" {
-				enFaModes[mode] = struct{}{}
+		case strings.HasPrefix(key, "translate-"):
+			dir, mode, topic, ok := splitOpDirMode(strings.TrimPrefix(key, "translate-"))
+			if ok {
+				ensureMode(translateDirs, dir, mode, topic)
 			}
-		case strings.HasPrefix(key, "fa-to-en-"):
-			mode := strings.TrimPrefix(key, "fa-to-en-")
-			if mode != "" {
-				faEnModes[mode] = struct{}{}
+		case strings.HasPrefix(key, "cursor-"):
+			dir, mode, topic, ok := splitOpDirMode(strings.TrimPrefix(key, "cursor-"))
+			if ok {
+				ensureMode(cursorDirs, dir, mode, topic)
 			}
-		case strings.HasPrefix(key, "refine-to-"):
-			style := strings.TrimPrefix(key, "refine-to-")
+		case strings.HasPrefix(key, "frontend-"):
+			dir, mode, topic, ok := splitOpDirMode(strings.TrimPrefix(key, "frontend-"))
+			if ok {
+				ensureMode(frontendDirs, dir, mode, topic)
+			}
+		case strings.HasPrefix(key, "refine-english-english-"):
+			style := strings.TrimPrefix(key, "refine-english-english-")
 			if style != "" {
 				refineStyles[style] = struct{}{}
 			}
-		case strings.HasPrefix(key, "term-for-"):
-			style := strings.TrimPrefix(key, "term-for-")
+		case strings.HasPrefix(key, "term-english-english-"):
+			style := strings.TrimPrefix(key, "term-english-english-")
 			if style != "" {
 				termStyles[style] = struct{}{}
 			}
-		case strings.HasPrefix(key, "compare-"):
-			lang := strings.TrimPrefix(key, "compare-")
-			if lang != "" {
-				compareLangs[lang] = struct{}{}
-			}
-		case strings.HasPrefix(key, "grammar-"):
-			lang := strings.TrimPrefix(key, "grammar-")
-			if lang != "" {
-				grammarLangs[lang] = struct{}{}
-			}
-		case key == "simplify-en":
+		case key == "compare-english-english":
+			compareLangs["en"] = struct{}{}
+		case key == "compare-persian-persian":
+			compareLangs["fa"] = struct{}{}
+		case key == "grammar-english-english":
+			grammarLangs["en"] = struct{}{}
+		case key == "grammar-persian-persian":
+			grammarLangs["fa"] = struct{}{}
+		case key == "simplify-english-english":
 			hasSimplify = true
-		case key == "symptoms":
+		case key == "symptoms-english-english":
 			hasSymptoms = true
 		}
 	}
 
-	ops := make([]OperationOption, 0, 6)
+	ops := make([]OperationOption, 0, 8)
 
-	if len(enFaModes) > 0 || len(faEnModes) > 0 {
-		dirs := make([]DirectionOption, 0, 2)
-		if len(enFaModes) > 0 {
-			dirs = append(dirs, DirectionOption{
-				Value: "en-fa",
-				Label: "English → Persian",
-				Modes: sortedOptions(enFaModes),
-			})
-		}
-		if len(faEnModes) > 0 {
-			dirs = append(dirs, DirectionOption{
-				Value: "fa-en",
-				Label: "Persian → English",
-				Modes: sortedOptions(faEnModes),
-			})
-		}
+	if len(translateDirs) > 0 {
 		ops = append(ops, OperationOption{
 			Value:      "translate",
 			Label:      "Translate",
-			Directions: dirs,
+			Directions: buildDirectionOptions(translateDirs),
+		})
+	}
+	if len(cursorDirs) > 0 {
+		ops = append(ops, OperationOption{
+			Value:      "cursor",
+			Label:      "Cursor",
+			Directions: buildDirectionOptions(cursorDirs),
+		})
+	}
+	if len(frontendDirs) > 0 {
+		ops = append(ops, OperationOption{
+			Value:      "frontend",
+			Label:      "Frontend",
+			Directions: buildDirectionOptions(frontendDirs),
 		})
 	}
 	if hasSimplify {
@@ -422,6 +547,65 @@ func (s *TransformService) GetOptions(ctx context.Context) (*TransformOptions, e
 	}
 
 	return &TransformOptions{Operations: ops}, nil
+}
+
+func splitOpDirMode(rest string) (dir, mode, topic string, ok bool) {
+	for _, d := range knownDirections {
+		if rest == d {
+			return d, "", "", true
+		}
+		prefix := d + "-"
+		if !strings.HasPrefix(rest, prefix) {
+			continue
+		}
+		modePart := strings.TrimPrefix(rest, prefix)
+		if modePart == "" {
+			return d, "", "", true
+		}
+		if strings.HasPrefix(modePart, "scientific-") {
+			topic = strings.TrimPrefix(modePart, "scientific-")
+			if topic == "" {
+				return "", "", "", false
+			}
+			return d, "scientific", topic, true
+		}
+		return d, modePart, "", true
+	}
+	return "", "", "", false
+}
+
+func buildDirectionOptions(store map[string]map[string]map[string]struct{}) []DirectionOption {
+	dirs := make([]DirectionOption, 0, len(store))
+	for dir, modes := range store {
+		modeKeys := make([]string, 0, len(modes))
+		for m := range modes {
+			modeKeys = append(modeKeys, m)
+		}
+		sort.Strings(modeKeys)
+		modeOpts := make([]ModeOption, 0, len(modeKeys))
+		for _, m := range modeKeys {
+			opt := ModeOption{Value: m, Label: titleFromSlug(m)}
+			topics := modes[m]
+			if len(topics) > 0 || m == "scientific" {
+				topicKeys := make([]string, 0, len(topics))
+				for t := range topics {
+					topicKeys = append(topicKeys, t)
+				}
+				sort.Strings(topicKeys)
+				opt.Topics = make([]OptionItem, 0, len(topicKeys))
+				for _, t := range topicKeys {
+					opt.Topics = append(opt.Topics, OptionItem{Value: t, Label: titleFromSlug(t)})
+				}
+			}
+			modeOpts = append(modeOpts, opt)
+		}
+		dirs = append(dirs, DirectionOption{
+			Value: dir,
+			Label: directionLabel(dir),
+			Modes: modeOpts,
+		})
+	}
+	return dirs
 }
 
 func sortOperationsByLabel(ops []OperationOption) {
@@ -475,6 +659,7 @@ type CreateInstructionRequest struct {
 	Operation string `json:"operation"`
 	Direction string `json:"direction"`
 	Mode      string `json:"mode"`
+	Topic     string `json:"topic"`
 	Style     string `json:"style"`
 	Language  string `json:"language"`
 	Content   string `json:"content"`
@@ -497,19 +682,35 @@ func buildInstructionKey(req CreateInstructionRequest) (string, error) {
 	op := strings.ToLower(strings.TrimSpace(req.Operation))
 	switch op {
 	case "translate":
-		dir := strings.ToLower(strings.TrimSpace(req.Direction))
+		dir := normalizeDirection(req.Direction)
 		mode := normalizeSlug(req.Mode)
 		if mode == "" {
 			return "", fmt.Errorf("invalid mode: %s", req.Mode)
 		}
-		switch dir {
-		case "en-fa":
-			return "en-to-fa-" + mode, nil
-		case "fa-en":
-			return "fa-to-en-" + mode, nil
-		default:
+		if dir != "english-persian" && dir != "persian-english" {
 			return "", fmt.Errorf("invalid direction: %s", req.Direction)
 		}
+		return translateInstructionKey(dir, mode, req.Topic)
+	case "cursor":
+		dir := normalizeDirection(req.Direction)
+		mode := normalizeSlug(req.Mode)
+		if dir != "persian-english" {
+			return "", fmt.Errorf("invalid direction: %s", req.Direction)
+		}
+		if mode != "skill" && mode != "agent" {
+			return "", fmt.Errorf("invalid mode: %s", req.Mode)
+		}
+		return "cursor-persian-english-" + mode, nil
+	case "frontend":
+		dir := normalizeDirection(req.Direction)
+		mode := normalizeSlug(req.Mode)
+		if mode != "for-agent" {
+			return "", fmt.Errorf("invalid mode: %s", req.Mode)
+		}
+		if dir != "persian-english" && dir != "english-english" {
+			return "", fmt.Errorf("invalid direction: %s", req.Direction)
+		}
+		return "frontend-" + dir + "-for-agent", nil
 	case "refine":
 		style := normalizeSlug(req.Style)
 		if style == "" {
@@ -518,7 +719,7 @@ func buildInstructionKey(req CreateInstructionRequest) (string, error) {
 		if style == "" {
 			return "", fmt.Errorf("invalid style: %s", req.Style)
 		}
-		return "refine-to-" + style, nil
+		return "refine-english-english-" + style, nil
 	case "term":
 		style := normalizeSlug(req.Style)
 		if style == "" {
@@ -527,29 +728,37 @@ func buildInstructionKey(req CreateInstructionRequest) (string, error) {
 		if style == "" {
 			return "", fmt.Errorf("invalid style: %s", req.Style)
 		}
-		return "term-for-" + style, nil
+		return "term-english-english-" + style, nil
 	case "simplify":
-		return "simplify-en", nil
+		return "simplify-english-english", nil
 	case "symptoms":
-		return "symptoms", nil
+		return "symptoms-english-english", nil
 	case "compare":
 		lang := strings.ToLower(strings.TrimSpace(req.Language))
 		if lang == "" {
 			lang = normalizeSlug(req.Mode)
 		}
-		if lang != "en" && lang != "fa" {
+		switch lang {
+		case "en":
+			return "compare-english-english", nil
+		case "fa":
+			return "compare-persian-persian", nil
+		default:
 			return "", fmt.Errorf("invalid language: %s", req.Language)
 		}
-		return "compare-" + lang, nil
 	case "grammar":
 		lang := strings.ToLower(strings.TrimSpace(req.Language))
 		if lang == "" {
 			lang = "en"
 		}
-		if lang != "en" && lang != "fa" {
+		switch lang {
+		case "en":
+			return "grammar-english-english", nil
+		case "fa":
+			return "grammar-persian-persian", nil
+		default:
 			return "", fmt.Errorf("invalid language: %s", req.Language)
 		}
-		return "grammar-" + lang, nil
 	default:
 		return "", fmt.Errorf("invalid operation: %s", req.Operation)
 	}

@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import {
   api,
+  type ModeOption,
   type OperationOption,
   type TransformOptions,
   type TransformResult,
@@ -19,6 +20,7 @@ const text1 = ref('')
 const text2 = ref('')
 const direction = ref('')
 const mode = ref('')
+const topic = ref('')
 const movieName = ref('')
 const style = ref('')
 const language = ref('')
@@ -51,6 +53,12 @@ const currentDirection = computed(() =>
 
 const modes = computed(() => sortByLabel(currentDirection.value?.modes ?? []))
 
+const currentMode = computed<ModeOption | undefined>(() =>
+  modes.value.find((m) => m.value === mode.value)
+)
+
+const topics = computed(() => sortByLabel(currentMode.value?.topics ?? []))
+
 const styles = computed(() => sortByLabel(currentOp.value?.styles ?? []))
 
 const languages = computed(() => sortByLabel(currentOp.value?.languages ?? []))
@@ -59,12 +67,15 @@ const showMovieField = computed(
   () => operation.value === 'translate' && mode.value === 'movie'
 )
 
+const showTopicField = computed(() => mode.value === 'scientific' && topics.value.length > 0)
+
 const instructionLink = computed(() => ({
   path: '/instructions',
   query: buildInstructionQuery({
     operation: operation.value,
     direction: direction.value || undefined,
     mode: mode.value || undefined,
+    topic: showTopicField.value ? topic.value || undefined : undefined,
     style: style.value || undefined,
     language: language.value || undefined,
   }),
@@ -82,9 +93,9 @@ const text1Dir = computed(() => textDir(text1.value))
 const text2Dir = computed(() => textDir(text2.value))
 
 const resultDir = computed((): 'rtl' | 'ltr' | 'auto' => {
-  if (operation.value === 'translate') {
-    if (direction.value === 'en-fa') return 'rtl'
-    if (direction.value === 'fa-en') return 'ltr'
+  if (operation.value === 'translate' || operation.value === 'cursor' || operation.value === 'frontend') {
+    if (direction.value === 'english-persian') return 'rtl'
+    if (direction.value === 'persian-english' || direction.value === 'english-english') return 'ltr'
   }
   if (operation.value === 'grammar' && language.value === 'fa') return 'rtl'
   if (operation.value === 'grammar' && language.value === 'en') return 'ltr'
@@ -100,6 +111,11 @@ const resultDate = computed(() =>
 function pickModeDefault(modeList: { value: string }[]): string {
   const general = modeList.find((m) => m.value.toLowerCase() === 'general')
   return general?.value ?? modeList[0]?.value ?? ''
+}
+
+function pickTopicDefault(topicList: { value: string }[]): string {
+  const general = topicList.find((t) => t.value.toLowerCase() === 'general')
+  return general?.value ?? topicList[0]?.value ?? ''
 }
 
 function pickOperationDefault(ops: OperationOption[]): string {
@@ -122,19 +138,33 @@ function syncSecondaryFields() {
   if (!op) return
 
   if (op.directions?.length) {
-    const preferred = op.directions.find((d) => d.value === 'en-fa') ?? op.directions[0]
+    const preferred =
+      op.directions.find((d) => d.value === 'english-persian') ??
+      op.directions.find((d) => d.value === 'persian-english') ??
+      op.directions[0]
     if (!op.directions.some((d) => d.value === direction.value)) {
       direction.value = preferred.value
     }
     const dir = op.directions.find((d) => d.value === direction.value)
     if (dir?.modes.length) {
-      mode.value = pickModeDefault(dir.modes)
+      if (!dir.modes.some((m) => m.value === mode.value)) {
+        mode.value = pickModeDefault(dir.modes)
+      }
     } else {
       mode.value = ''
     }
   } else {
     direction.value = ''
     mode.value = ''
+  }
+
+  const modeOpt = currentDirection.value?.modes.find((m) => m.value === mode.value)
+  if (modeOpt?.topics?.length) {
+    if (!modeOpt.topics.some((t) => t.value === topic.value)) {
+      topic.value = pickTopicDefault(modeOpt.topics)
+    }
+  } else {
+    topic.value = ''
   }
 
   if (op.styles?.length) {
@@ -161,11 +191,26 @@ function syncSecondaryFields() {
 function syncDirectionFromText(input: string) {
   if (!input.trim()) return
 
-  if (operation.value === 'translate' && directions.value.length) {
-    const target = startsWithPersian(input) ? 'fa-en' : 'en-fa'
+  if (
+    (operation.value === 'translate' || operation.value === 'frontend') &&
+    directions.value.length
+  ) {
+    const target = startsWithPersian(input) ? 'persian-english' : 'english-persian'
+    const fallback = startsWithPersian(input) ? 'persian-english' : 'english-english'
     if (directions.value.some((d) => d.value === target) && direction.value !== target) {
       direction.value = target
+    } else if (
+      directions.value.some((d) => d.value === fallback) &&
+      !directions.value.some((d) => d.value === target)
+    ) {
+      direction.value = fallback
     }
+    return
+  }
+
+  if (operation.value === 'cursor' && directions.value.length) {
+    const pe = directions.value.find((d) => d.value === 'persian-english')
+    if (pe) direction.value = pe.value
     return
   }
 
@@ -176,6 +221,7 @@ function syncDirectionFromText(input: string) {
 
 watch(operation, syncSecondaryFields)
 watch(direction, syncSecondaryFields)
+watch(mode, syncSecondaryFields)
 watch(text, (value) => syncDirectionFromText(value))
 watch(operation, () => {
   if (text.value.trim()) syncDirectionFromText(text.value)
@@ -230,7 +276,11 @@ async function submit() {
     if (operation.value === 'translate') {
       payload.direction = direction.value
       payload.mode = mode.value
+      if (showTopicField.value) payload.topic = topic.value
       if (showMovieField.value) payload.movie_name = movieName.value
+    } else if (operation.value === 'cursor' || operation.value === 'frontend') {
+      payload.direction = direction.value
+      payload.mode = mode.value
     } else if (operation.value === 'term') {
       payload.style = style.value
       if (language.value) payload.language = language.value
@@ -289,6 +339,14 @@ onMounted(loadOptions)
             <select v-model="mode" class="select-field select-compact">
               <option v-for="m in modes" :key="m.value" :value="m.value">
                 {{ m.label }}
+              </option>
+            </select>
+          </div>
+          <div v-if="showTopicField" class="w-full max-w-[12rem]">
+            <label class="mb-1 block text-sm text-gray-400">Topic</label>
+            <select v-model="topic" class="select-field select-compact">
+              <option v-for="t in topics" :key="t.value" :value="t.value">
+                {{ t.label }}
               </option>
             </select>
           </div>
