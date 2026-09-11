@@ -25,7 +25,7 @@ services:
     # Image is built by .armin/docker-scripts/run-on-docker-*.ps1 (context = repo root).
     # Host publish is optional via docker-compose.publish.yml when publish_port is set.
     # On t3, HAProxy reaches this container as lexmora-api:8080 on t3-net (no host bind).
-    # Server overlay docker-compose.openrouter-proxy.yml adds Mullvad HTTP proxy egress.
+    # Server overlay docker-compose.openrouter-proxy.yml adds Windscribe HTTP proxy egress.
     image: ${IMAGE_TAG:-lexmora-api:latest}
     container_name: lexmora-api
     expose:
