@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { api, type HistoryRecord } from '../api/client'
 import HistoryModal from '../components/HistoryModal.vue'
+import Icon from '../components/Icon.vue'
 import { HISTORY_TYPE_OPTIONS } from '../constants/historyTypes'
 import { formatLocalDateTime } from '../utils/datetime'
 
@@ -243,9 +244,10 @@ onUnmounted(() => {
         <button
           v-if="fromDate || toDate || typeFilters.length"
           type="button"
-          class="text-sm text-gray-400 hover:text-white"
+          class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white"
           @click="clearFilters"
         >
+          <Icon name="clear" />
           Clear filters
         </button>
       </template>
@@ -254,6 +256,7 @@ onUnmounted(() => {
         class="btn-ghost text-sm"
         @click="showResultColumn = !showResultColumn"
       >
+        <Icon name="filter" />
         {{ showResultColumn ? 'Hide result' : 'Show result' }}
       </button>
       <button
@@ -262,6 +265,7 @@ onUnmounted(() => {
         :disabled="!someChecked || deleting"
         @click="removeChecked"
       >
+        <Icon name="delete" />
         {{ deleting ? 'Deleting...' : 'Delete' }}
       </button>
     </div>
@@ -339,11 +343,11 @@ onUnmounted(() => {
               <td class="px-4 py-3 whitespace-nowrap">{{ displayDate(item) }}</td>
               <td class="px-4 py-3">
                 <button
-                  class="text-red-400 hover:text-red-300"
+                  class="inline-flex items-center text-red-400 hover:text-red-300"
                   title="Delete"
                   @click="remove(item.id, $event)"
                 >
-                  ✕
+                  <Icon name="delete" />
                 </button>
               </td>
             </tr>
@@ -366,6 +370,7 @@ onUnmounted(() => {
           :disabled="page <= 1 || loading"
           @click="goToPage(page - 1)"
         >
+          <Icon name="prev" />
           Previous
         </button>
         <button
@@ -375,6 +380,7 @@ onUnmounted(() => {
           @click="goToPage(page + 1)"
         >
           Next
+          <Icon name="next" />
         </button>
       </div>
     </div>

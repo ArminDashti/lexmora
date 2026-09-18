@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { api, type QuizQuestion } from '../api/client'
+import Icon from '../components/Icon.vue'
 
 type Phase = 'setup' | 'play' | 'done'
 
@@ -38,12 +39,11 @@ async function startQuiz() {
   }
 }
 
-function showResult() {
-  revealed.value = true
-}
-
-function nextQuestion() {
-  if (!revealed.value) return
+function onPrimary() {
+  if (!revealed.value) {
+    revealed.value = true
+    return
+  }
   if (isLast.value) {
     phase.value = 'done'
     return
@@ -88,9 +88,6 @@ function restart() {
   <div class="mx-auto max-w-3xl space-y-6">
     <div>
       <h1 class="text-2xl font-semibold text-white">Quiz</h1>
-      <p class="mt-1 text-sm text-gray-400">
-        Guess the Persian for each English prompt. Questions come from your English↔Persian translate history.
-      </p>
     </div>
 
     <div v-if="error" class="text-sm text-red-400">{{ error }}</div>
@@ -108,6 +105,7 @@ function restart() {
       </div>
 
       <button type="button" class="btn-primary" :disabled="loading" @click="startQuiz">
+        <Icon name="start" />
         {{ loading ? 'Starting...' : 'Start quiz' }}
       </button>
     </div>
@@ -125,47 +123,44 @@ function restart() {
         </div>
       </div>
 
-      <div v-if="revealed">
+      <div>
         <p class="mb-1 text-xs uppercase tracking-wide text-gray-500">Persian</p>
         <div
-          class="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-4 text-emerald-100 whitespace-pre-wrap"
+          class="rounded-lg border p-4 whitespace-pre-wrap min-h-[3.5rem]"
+          :class="
+            revealed
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100'
+              : 'border-surface-border bg-surface text-gray-500'
+          "
           dir="rtl"
         >
-          {{ current.answer }}
+          {{ revealed ? current.answer : '—' }}
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-3">
+      <div class="flex flex-wrap items-center justify-center gap-3">
         <button
           type="button"
-          class="btn-primary"
-          :disabled="!revealed"
-          @click="nextQuestion"
-        >
-          {{ isLast ? 'Finish' : 'Next' }}
-        </button>
-        <button
-          type="button"
-          class="rounded-lg border border-red-500/50 px-4 py-2 text-sm text-red-300 transition hover:border-red-400 hover:bg-red-500/10"
+          class="inline-flex items-center gap-2 rounded-lg border border-red-500/50 px-4 py-2 text-sm text-red-300 transition hover:border-red-400 hover:bg-red-500/10"
           :disabled="deleting"
           @click="deleteCurrent"
         >
+          <Icon name="delete" />
           {{ deleting ? 'Deleting...' : 'Delete' }}
         </button>
-        <button
-          type="button"
-          class="btn-primary"
-          :disabled="revealed"
-          @click="showResult"
-        >
-          Answer
+        <button type="button" class="btn-primary" @click="onPrimary">
+          <Icon :name="!revealed ? 'answer' : isLast ? 'finish' : 'next'" />
+          {{ !revealed ? 'Answer' : isLast ? 'Finish' : 'Next' }}
         </button>
       </div>
     </div>
 
     <div v-else-if="phase === 'done'" class="card space-y-5 text-center">
       <h2 class="text-xl font-semibold text-white">Quiz complete</h2>
-      <button type="button" class="btn-primary" @click="restart">Restart</button>
+      <button type="button" class="btn-primary" @click="restart">
+        <Icon name="restart" />
+        Restart
+      </button>
     </div>
   </div>
 </template>

@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { api } from '../api/client'
+import Icon from '../components/Icon.vue'
 import {
   buildInstructionKey,
   instructionKeyFilename,
@@ -96,6 +97,7 @@ watch(instructionKey, load, { immediate: true })
 
         <div class="flex items-center gap-4">
           <button class="btn-primary" :disabled="saving" @click="save">
+            <Icon name="save" />
             {{ saving ? 'Saving...' : 'Save' }}
           </button>
           <span v-if="saved" class="text-sm text-green-400">Saved</span>

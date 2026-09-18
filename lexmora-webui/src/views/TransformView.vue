@@ -8,6 +8,7 @@ import {
   type TransformOptions,
   type TransformResult,
 } from '../api/client'
+import Icon from '../components/Icon.vue'
 import MarkdownPreview from '../components/MarkdownPreview.vue'
 import { formatLocalDateTime } from '../utils/datetime'
 import { buildInstructionQuery } from '../utils/instructionKey'
@@ -30,8 +31,10 @@ const optionsLoading = ref(true)
 const error = ref('')
 const pasteError = ref('')
 const result = ref<TransformResult | null>(null)
+const copyFeedback = ref('')
 
 const canPaste = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText
+const canCopy = typeof navigator !== 'undefined' && !!navigator.clipboard?.writeText
 
 function sortByLabel<T extends { label: string }>(items: T[]): T[] {
   return [...items].sort((a, b) =>
@@ -256,6 +259,24 @@ async function pasteInto(target: 'text' | 'text1' | 'text2') {
   }
 }
 
+async function copyResult() {
+  copyFeedback.value = ''
+  if (!result.value?.result_text) return
+  if (!canCopy) {
+    copyFeedback.value = 'Clipboard unavailable'
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(result.value.result_text)
+    copyFeedback.value = 'Copied'
+    setTimeout(() => {
+      if (copyFeedback.value === 'Copied') copyFeedback.value = ''
+    }, 1500)
+  } catch {
+    copyFeedback.value = 'Copy failed'
+  }
+}
+
 async function submit() {
   if (!canSubmit.value || loading.value) return
   error.value = ''
@@ -375,7 +396,8 @@ onMounted(loadOptions)
         </template>
 
         <div class="ml-auto">
-          <RouterLink :to="instructionLink" class="btn-ghost inline-block text-sm">
+          <RouterLink :to="instructionLink" class="btn-ghost inline-flex items-center gap-2 text-sm">
+            <Icon name="instruction" />
             Instruction
           </RouterLink>
         </div>
@@ -397,6 +419,7 @@ onMounted(loadOptions)
                 :disabled="!canPaste"
                 @click="pasteInto('text1')"
               >
+                <Icon name="paste" />
                 Paste
               </button>
             </div>
@@ -417,6 +440,7 @@ onMounted(loadOptions)
                 :disabled="!canPaste"
                 @click="pasteInto('text2')"
               >
+                <Icon name="paste" />
                 Paste
               </button>
             </div>
@@ -440,6 +464,7 @@ onMounted(loadOptions)
             :disabled="!canPaste"
             @click="pasteInto('text')"
           >
+            <Icon name="paste" />
             Paste
           </button>
         </div>
@@ -457,6 +482,7 @@ onMounted(loadOptions)
       <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
 
       <button class="btn-primary" type="submit" :disabled="loading || !canSubmit">
+        <Icon name="transform" />
         {{ loading ? 'Processing...' : 'Transform' }}
       </button>
     </form>
@@ -466,6 +492,15 @@ onMounted(loadOptions)
         <span class="rounded bg-accent/20 px-2 py-0.5 text-accent">{{ result.type_display }}</span>
         <span>{{ result.model }}</span>
         <span>{{ resultDate }}</span>
+        <button
+          type="button"
+          class="btn-ghost ml-auto px-2 py-1 text-xs"
+          :disabled="!canCopy"
+          @click="copyResult"
+        >
+          <Icon :name="copyFeedback === 'Copied' ? 'check' : 'copy'" />
+          {{ copyFeedback || 'Copy' }}
+        </button>
       </div>
       <div>
         <h3 class="mb-1 text-sm font-medium text-gray-400">Result</h3>

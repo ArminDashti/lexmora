@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { HistoryRecord } from '../api/client'
+import Icon from './Icon.vue'
 import MarkdownPreview from './MarkdownPreview.vue'
 import { formatLocalDateTime } from '../utils/datetime'
 import { textDir } from '../utils/textDirection'
@@ -21,7 +22,9 @@ const localDate = computed(() =>
           <h3 class="text-lg font-semibold text-white">History details</h3>
           <p class="text-sm text-gray-400">{{ localDate }}</p>
         </div>
-        <button class="text-gray-400 hover:text-white" @click="$emit('close')">✕</button>
+        <button class="inline-flex text-gray-400 hover:text-white" @click="$emit('close')">
+          <Icon name="close" />
+        </button>
       </div>
 
       <dl class="space-y-4 text-sm">

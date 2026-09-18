@@ -48,7 +48,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("openrouter client: %v", err)
 	}
-	transformService := service.NewTransformService(historyRepo, settingsService, instructionService, openRouter)
+	gemini, err := service.NewGeminiClient("", cfg.OpenRouterHTTPProxy)
+	if err != nil {
+		log.Fatalf("gemini client: %v", err)
+	}
+	transformService := service.NewTransformService(historyRepo, settingsService, instructionService, openRouter, gemini)
 	historyService := service.NewHistoryService(historyRepo)
 	statsService := service.NewStatsService(historyRepo)
 	quizService := service.NewQuizService(historyRepo)

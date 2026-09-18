@@ -270,11 +270,10 @@ export interface Instruction {
 
 export interface AppSettings {
   openrouter_api_key: string
+  gemini_api_key: string
+  api_provider: 'openrouter' | 'gemini'
   model_name: string
   updated_at: string
-  /** UI-ready; backend wiring for CursorAPI is pending. */
-  api_provider?: 'openrouter' | 'cursor'
-  cursor_api_key?: string
 }
 
 export interface OpenRouterModel {

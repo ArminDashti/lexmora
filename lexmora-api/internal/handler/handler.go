@@ -64,6 +64,10 @@ func (h *Handler) handleError(c *gin.Context, err error) {
 			c.JSON(http.StatusBadGateway, domain.APIError{Error: err.Error(), Code: "OPENROUTER_ERROR"})
 			return
 		}
+		if err != nil && strings.Contains(err.Error(), "gemini") {
+			c.JSON(http.StatusBadGateway, domain.APIError{Error: err.Error(), Code: "GEMINI_ERROR"})
+			return
+		}
 		if err != nil && (strings.Contains(err.Error(), "required") || strings.Contains(err.Error(), "invalid") || strings.Contains(err.Error(), "not found for key") || strings.Contains(err.Error(), "not enough")) {
 			c.JSON(http.StatusBadRequest, domain.APIError{Error: err.Error(), Code: "VALIDATION_ERROR"})
 			return

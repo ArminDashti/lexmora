@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { api, type CreditsInfo, type OpenRouterModel } from '../api/client'
+import Icon from '../components/Icon.vue'
 
-type ApiProvider = 'openrouter' | 'cursor'
+type ApiProvider = 'openrouter' | 'gemini'
 
 const PROVIDER_STORAGE_KEY = 'lexmora_api_provider'
+const DEFAULT_GEMINI_MODEL = 'gemini-2.0-flash'
 
 const apiProvider = ref<ApiProvider>('openrouter')
 const apiKey = ref('')
-const cursorApiKey = ref('')
+const geminiApiKey = ref('')
 const modelName = ref('')
 const modelQuery = ref('')
 const modelResults = ref<OpenRouterModel[]>([])
@@ -23,12 +25,13 @@ const error = ref('')
 const saved = ref(false)
 
 const isOpenRouter = computed(() => apiProvider.value === 'openrouter')
+const isGemini = computed(() => apiProvider.value === 'gemini')
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
 
 function readStoredProvider(): ApiProvider {
   const stored = localStorage.getItem(PROVIDER_STORAGE_KEY)
-  return stored === 'cursor' ? 'cursor' : 'openrouter'
+  return stored === 'gemini' ? 'gemini' : 'openrouter'
 }
 
 function persistProvider(provider: ApiProvider) {
@@ -41,12 +44,12 @@ async function load() {
   try {
     const settings = await api.getSettings()
     apiProvider.value =
-      settings.api_provider === 'cursor' || settings.api_provider === 'openrouter'
+      settings.api_provider === 'gemini' || settings.api_provider === 'openrouter'
         ? settings.api_provider
         : readStoredProvider()
     persistProvider(apiProvider.value)
     apiKey.value = settings.openrouter_api_key
-    cursorApiKey.value = settings.cursor_api_key ?? ''
+    geminiApiKey.value = settings.gemini_api_key ?? ''
     modelName.value = settings.model_name
     modelQuery.value = settings.model_name
     if (isOpenRouter.value) {
@@ -93,8 +96,13 @@ watch(modelQuery, (q) => {
   }
 })
 
-watch(apiProvider, (provider) => {
+watch(apiProvider, (provider, prev) => {
   persistProvider(provider)
+  if (provider === 'gemini' && prev === 'openrouter' && !loading.value) {
+    if (!modelQuery.value.trim() || modelQuery.value.includes('/')) {
+      modelQuery.value = DEFAULT_GEMINI_MODEL
+    }
+  }
   if (provider === 'openrouter' && !loading.value) {
     loadCredits()
     searchModels(modelQuery.value)
@@ -121,9 +129,9 @@ async function save() {
     persistProvider(apiProvider.value)
     await api.updateSettings({
       openrouter_api_key: apiKey.value,
+      gemini_api_key: geminiApiKey.value,
       model_name: selectedModel,
       api_provider: apiProvider.value,
-      cursor_api_key: cursorApiKey.value,
     })
     modelName.value = selectedModel
     modelQuery.value = selectedModel
@@ -171,7 +179,7 @@ onUnmounted(() => {
         <label class="mb-1 block text-sm text-gray-400">API provider</label>
         <select v-model="apiProvider" class="select-field select-compact">
           <option value="openrouter">OpenRouter</option>
-          <option value="cursor">CursorAPI</option>
+          <option value="gemini">Google Gemini</option>
         </select>
       </div>
 
@@ -235,14 +243,14 @@ onUnmounted(() => {
         </div>
       </template>
 
-      <template v-else>
+      <template v-else-if="isGemini">
         <div>
-          <label class="mb-1 block text-sm text-gray-400">CursorAPI key</label>
+          <label class="mb-1 block text-sm text-gray-400">Gemini API key</label>
           <input
-            v-model="cursorApiKey"
+            v-model="geminiApiKey"
             type="password"
             class="input-field"
-            placeholder="Cursor API key"
+            placeholder="AIza..."
           />
         </div>
 
@@ -251,20 +259,18 @@ onUnmounted(() => {
           <input
             v-model="modelQuery"
             class="input-field"
-            placeholder="e.g. gpt-5"
+            :placeholder="DEFAULT_GEMINI_MODEL"
             autocomplete="off"
           />
           <p class="mt-1 text-xs text-gray-500">
             Selected: <span class="text-gray-300">{{ modelQuery || modelName || 'none' }}</span>
-          </p>
-          <p class="mt-1 text-xs text-gray-500">
-            Backend CursorAPI wiring is pending; provider choice is saved in the browser for now.
           </p>
         </div>
       </template>
 
       <div class="flex items-center gap-4">
         <button class="btn-primary" :disabled="saving" @click="save">
+          <Icon name="save" />
           {{ saving ? 'Saving...' : 'Save settings' }}
         </button>
         <span v-if="saved" class="text-sm text-green-400">Saved</span>
@@ -279,6 +285,7 @@ onUnmounted(() => {
         Remove all rows from the history table. Instructions and settings are kept.
       </p>
       <button class="btn-danger" :disabled="clearing" @click="clearAll">
+        <Icon name="clear" />
         {{ clearing ? 'Clearing...' : 'Clear all history' }}
       </button>
     </div>

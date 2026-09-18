@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { clearAuth, getUsername } from '../api/client'
+import Icon from './Icon.vue'
 import SiteFooter from './SiteFooter.vue'
 
 const route = useRoute()
@@ -57,7 +58,10 @@ function logout() {
         </div>
         <div class="flex items-center gap-4">
           <span class="text-sm text-gray-400">{{ username }}</span>
-          <button class="btn-ghost text-sm" @click="logout">Logout</button>
+          <button class="btn-ghost text-sm" @click="logout">
+            <Icon name="logout" />
+            Logout
+          </button>
         </div>
       </div>
     </header>

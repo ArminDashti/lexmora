@@ -32,6 +32,7 @@ type TransformService struct {
 	settingsService *SettingsService
 	instructionSvc  *InstructionService
 	openRouter      *OpenRouterClient
+	gemini          *GeminiClient
 }
 
 func NewTransformService(
@@ -39,12 +40,14 @@ func NewTransformService(
 	settingsService *SettingsService,
 	instructionSvc *InstructionService,
 	openRouter *OpenRouterClient,
+	gemini *GeminiClient,
 ) *TransformService {
 	return &TransformService{
 		historyRepo:     historyRepo,
 		settingsService: settingsService,
 		instructionSvc:  instructionSvc,
 		openRouter:      openRouter,
+		gemini:          gemini,
 	}
 }
 
@@ -80,7 +83,7 @@ func (s *TransformService) Transform(ctx context.Context, req TransformRequest) 
 		return nil, err
 	}
 
-	result, err := s.openRouter.Complete(ctx, settings.OpenRouterAPIKey, settings.ModelName, systemPrompt, userText)
+	result, err := s.complete(ctx, settings, systemPrompt, userText)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +113,21 @@ func (s *TransformService) Transform(ctx context.Context, req TransformRequest) 
 		CreatedAt:      saved.CreatedAt,
 		FormattedDate:  saved.FormattedDate,
 	}, nil
+}
+
+func (s *TransformService) complete(ctx context.Context, settings *domain.AppSettings, systemPrompt, userText string) (string, error) {
+	provider := strings.ToLower(strings.TrimSpace(settings.APIProvider))
+	if provider == "" {
+		provider = "openrouter"
+	}
+	switch provider {
+	case "gemini":
+		return s.gemini.Complete(ctx, settings.GeminiAPIKey, settings.ModelName, systemPrompt, userText)
+	case "openrouter":
+		return s.openRouter.Complete(ctx, settings.OpenRouterAPIKey, settings.ModelName, systemPrompt, userText)
+	default:
+		return "", fmt.Errorf("invalid api_provider: %s", settings.APIProvider)
+	}
 }
 
 func (s *TransformService) resolveTransform(ctx context.Context, req TransformRequest, text string) (domain.HistoryType, string, string, map[string]string, error) {

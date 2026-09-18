@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api, setAuth } from '../api/client'
+import Icon from '../components/Icon.vue'
 
 const router = useRouter()
 const username = ref('armin')
@@ -52,6 +53,7 @@ async function submit() {
         </div>
         <p v-if="error" class="text-sm text-red-400">{{ error }}</p>
         <button type="submit" class="btn-primary w-full" :disabled="loading">
+          <Icon name="login" />
           {{ loading ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>

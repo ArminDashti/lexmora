@@ -19,8 +19,8 @@ func (s *SettingsService) Get(ctx context.Context) (*domain.AppSettings, error) 
 	return s.settingsRepo.Get(ctx)
 }
 
-func (s *SettingsService) Update(ctx context.Context, apiKey, modelName *string) (*domain.AppSettings, error) {
-	return s.settingsRepo.Update(ctx, apiKey, modelName)
+func (s *SettingsService) Update(ctx context.Context, u repository.SettingsUpdate) (*domain.AppSettings, error) {
+	return s.settingsRepo.Update(ctx, u)
 }
 
 func (s *SettingsService) ClearAllData(ctx context.Context) error {

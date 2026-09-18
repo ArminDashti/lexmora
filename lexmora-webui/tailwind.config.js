@@ -9,13 +9,13 @@ export default {
       },
       colors: {
         surface: {
-          DEFAULT: '#0f1117',
-          raised: '#161b22',
-          border: '#30363d',
+          DEFAULT: '#1e1e1e',
+          raised: '#252526',
+          border: '#3c3c3c',
         },
         accent: {
-          DEFAULT: '#58a6ff',
-          muted: '#388bfd',
+          DEFAULT: '#007acc',
+          muted: '#005a9e',
         },
       },
     },

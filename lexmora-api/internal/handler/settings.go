@@ -6,10 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/ArminDashti/lexmora-api/internal/domain"
+	"github.com/ArminDashti/lexmora-api/internal/repository"
 )
 
 type patchSettingsRequest struct {
 	OpenRouterAPIKey *string `json:"openrouter_api_key"`
+	GeminiAPIKey     *string `json:"gemini_api_key"`
+	APIProvider      *string `json:"api_provider"`
 	ModelName        *string `json:"model_name"`
 }
 
@@ -29,7 +32,12 @@ func (h *Handler) PatchSettings(c *gin.Context) {
 		return
 	}
 
-	settings, err := h.settingsService.Update(c.Request.Context(), req.OpenRouterAPIKey, req.ModelName)
+	settings, err := h.settingsService.Update(c.Request.Context(), repository.SettingsUpdate{
+		OpenRouterAPIKey: req.OpenRouterAPIKey,
+		GeminiAPIKey:     req.GeminiAPIKey,
+		APIProvider:      req.APIProvider,
+		ModelName:        req.ModelName,
+	})
 	if err != nil {
 		h.handleError(c, err)
 		return

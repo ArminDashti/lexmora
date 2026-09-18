@@ -8,18 +8,20 @@ PostgreSQL database for the Lexmora app. Migrations live in `migrations/`.
 |------|-------|
 | Engine | PostgreSQL 16 |
 | Database | `lexmora` |
-| Migrations | `001_init`, `002_app_v2`, `003_compare` |
+| Migrations | `001_init` … `007_gemini_provider` |
 
 ## Tables
 
 ### app_settings
 
-Singleton row for OpenRouter configuration.
+Singleton row for LLM provider configuration.
 
 | Column | Type | Constraints |
 |--------|------|-------------|
 | id | INT | PRIMARY KEY, DEFAULT 1, CHECK (id = 1) |
 | openrouter_api_key | TEXT | NOT NULL, DEFAULT '' |
+| gemini_api_key | TEXT | NOT NULL, DEFAULT '' |
+| api_provider | TEXT | NOT NULL, DEFAULT `openrouter`, CHECK (`openrouter`\|`gemini`) |
 | model_name | TEXT | NOT NULL, DEFAULT `anthropic/claude-3.5-sonnet` |
 | updated_at | TIMESTAMPTZ | NOT NULL, DEFAULT now() |
 
